@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const userName = savedUser?.name || 'Student';
+  const userName = savedUser?.name || 'Sparrow';
 
   return (
     <div className="space-y-6">
@@ -26,13 +26,18 @@ export default function StudentDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {['Total Complaints', 'Pending', 'In Progress', 'Resolved'].map((title, idx) => (
+        {[
+          { title: 'Total Complaints', count: '2', color: 'text-indigo-400' },
+          { title: 'Pending', count: '1', color: 'text-amber-400' },
+          { title: 'In Progress', count: '1', color: 'text-blue-400' },
+          { title: 'Resolved', count: '0', color: 'text-emerald-400' }
+        ].map((stat, idx) => (
           <div key={idx} className="bg-gray-800 border border-gray-700 p-6 rounded-xl flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-400">{title}</p>
-              <h3 className="text-2xl font-bold mt-1 text-white">0</h3>
+              <p className="text-sm text-gray-400">{stat.title}</p>
+              <h3 className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.count}</h3>
             </div>
-            <div className="w-10 h-10 bg-gray-700 rounded-lg animate-pulse" />
+            <div className="text-2xl bg-gray-700/50 p-2 rounded-lg">📊</div>
           </div>
         ))}
       </div>
@@ -48,9 +53,12 @@ export default function StudentDashboard() {
             <button onClick={() => navigate('/notifications')} className="text-sm text-indigo-400 hover:underline">View all</button>
           </div>
           <div className="space-y-3">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="h-12 bg-gray-700/40 rounded-lg animate-pulse w-full" />
-            ))}
+            <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-700/50 text-sm text-gray-300">
+              Your complaint <span className="text-indigo-400 font-medium">#CMS-8831</span> status updated to "In Progress".
+            </div>
+            <div className="p-3 bg-gray-700/30 rounded-lg border border-gray-700/50 text-sm text-gray-300">
+              Welcome to UniCMS! Your account registration was verified successfully.
+            </div>
           </div>
         </div>
 
@@ -69,12 +77,6 @@ export default function StudentDashboard() {
               className="w-full p-3 bg-gray-700/50 hover:bg-gray-700 rounded-lg text-left text-sm font-medium transition flex items-center gap-3 text-gray-200"
             >
               🗂️ View My Complaints
-            </button>
-            <button 
-              onClick={() => navigate('/notifications')}
-              className="w-full p-3 bg-gray-700/50 hover:bg-gray-700 rounded-lg text-left text-sm font-medium transition flex items-center gap-3 text-gray-200"
-            >
-              🔔 Check Notifications
             </button>
           </div>
         </div>
