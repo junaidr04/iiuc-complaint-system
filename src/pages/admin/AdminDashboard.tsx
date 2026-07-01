@@ -1,81 +1,65 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { getSystemStats, getNotifications } from '@/services/api';
-import type { SystemStats } from '@/types/types';
-import AppLayout from '@/components/layouts/AppLayout';
-import { Link } from 'react-router-dom';
-import { FileText, Users, Building2, Clock, Eye, CheckCircle, BarChart3, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { StatCardSkeleton } from '@/components/common/Skeletons';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const AdminDashboard: React.FC = () => {
-  const { profile } = useAuth();
-  const [stats, setStats] = useState<SystemStats | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const [counts, setCounts] = useState({ total: 0, pending: 0, inProgress: 0, resolved: 0 });
 
   useEffect(() => {
-    getSystemStats().then(s => { setStats(s); setLoading(false); });
+    const saved = localStorage.getItem('user_complaints');
+    if (saved) {
+      const list = JSON.parse(saved);
+      setCounts({
+        total: list.length,
+        pending: list.filter((c: any) => c.status === 'Pending').length,
+        inProgress: list.filter((c: any) => c.status === 'In Progress').length,
+        resolved: list.filter((c: any) => c.status === 'Resolved').length,
+      });
+    }
   }, []);
 
-  const statCards = stats ? [
-    { label: 'Total Complaints', value: stats.totalComplaints, icon: <FileText className="h-5 w-5 text-primary" />, accent: 'bg-primary/10', href: '/admin/complaints' },
-    { label: 'Pending', value: stats.pending, icon: <Clock className="h-5 w-5 text-status-pending" />, accent: 'bg-status-pending', href: '/admin/complaints?status=pending' },
-    { label: 'In Review', value: stats.inReview, icon: <Eye className="h-5 w-5 text-status-review" />, accent: 'bg-status-review', href: '/admin/complaints?status=in_review' },
-    { label: 'Resolved', value: stats.resolved, icon: <CheckCircle className="h-5 w-5 text-status-resolved" />, accent: 'bg-status-resolved', href: '/admin/complaints?status=resolved' },
-    { label: 'Total Users', value: stats.totalUsers, icon: <Users className="h-5 w-5 text-primary" />, accent: 'bg-primary/10', href: '/admin/users' },
-    { label: 'Departments', value: stats.totalDepartments, icon: <Building2 className="h-5 w-5 text-primary" />, accent: 'bg-primary/10', href: '/admin/departments' },
-  ] : [];
-
   return (
-    <AppLayout>
-      <div className="max-w-5xl space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Admin Dashboard</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">System-wide overview and management.</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+        <p className="text-gray-400 text-sm mt-1">System-wide overview and management.</p>
+      </div>
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {loading
-            ? Array.from({ length: 6 }).map((_, i) => <StatCardSkeleton key={i} />)
-            : statCards.map(s => (
-              <Link key={s.label} to={s.href} className="block group">
-                <div className="rounded-lg border border-border bg-card p-5 card-shadow hover-shadow transition-all">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{s.label}</p>
-                      <p className="mt-1.5 text-3xl font-semibold text-foreground">{s.value}</p>
-                    </div>
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-md ${s.accent}`}>{s.icon}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-        </div>
+      {/* Grid Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { title: 'Total Complaints', count: counts.total, color: 'text-indigo-400' },
+          { title: 'Pending Issues', count: counts.pending, color: 'text-amber-400' },
+          { title: 'In Progress', count: counts.inProgress, color: 'text-blue-400' },
+          { title: 'Resolved', count: counts.resolved, color: 'text-emerald-400' }
+        ].map((stat, idx) => (
+          <div key={idx} className="bg-gray-800 border border-gray-700 p-6 rounded-xl flex justify-between items-center">
+            <div>
+              <p className="text-sm text-gray-400 font-medium">{stat.title}</p>
+              <h3 className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.count}</h3>
+            </div>
+            <div className="text-xl bg-gray-700/50 p-2 rounded-lg">📊</div>
+          </div>
+        ))}
+      </div>
 
-        {/* Quick nav */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { title: 'Manage Complaints', desc: 'View, filter and assign all system complaints', href: '/admin/complaints', icon: <FileText className="h-5 w-5 text-muted-foreground" /> },
-            { title: 'Manage Departments', desc: 'Create departments and assign authorities', href: '/admin/departments', icon: <Building2 className="h-5 w-5 text-muted-foreground" /> },
-            { title: 'Manage Users', desc: 'View, edit roles, and manage user accounts', href: '/admin/users', icon: <Users className="h-5 w-5 text-muted-foreground" /> },
-            { title: 'View Analytics', desc: 'Charts and trends for complaint data', href: '/admin/analytics', icon: <BarChart3 className="h-5 w-5 text-muted-foreground" /> },
-          ].map(item => (
-            <Link key={item.href} to={item.href} className="block group">
-              <div className="rounded-lg border border-border bg-card p-5 card-shadow hover-shadow transition-all flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted shrink-0">{item.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-              </div>
-            </Link>
-          ))}
+      {/* Admin Quick Links */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+        <div onClick={() => navigate('/admin/complaints')} className="bg-gray-800 border border-gray-700 hover:border-gray-600 p-5 rounded-xl flex items-center gap-4 cursor-pointer transition">
+          <div className="text-2xl bg-indigo-500/10 text-indigo-400 p-3 rounded-lg">🗂️</div>
+          <div>
+            <h4 className="text-white font-semibold text-base">Manage Complaints</h4>
+            <p className="text-gray-400 text-xs mt-0.5">View, filter and assign all system complaints</p>
+          </div>
+        </div>
+        <div onClick={() => navigate('/admin/users')} className="bg-gray-800 border border-gray-700 hover:border-gray-600 p-5 rounded-xl flex items-center gap-4 cursor-pointer transition">
+          <div className="text-2xl bg-purple-500/10 text-purple-400 p-3 rounded-lg">👥</div>
+          <div>
+            <h4 className="text-white font-semibold text-base">Manage Users</h4>
+            <p className="text-gray-400 text-xs mt-0.5">View, edit roles, and manage user accounts</p>
+          </div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
-};
-
-export default AdminDashboard;
+}
