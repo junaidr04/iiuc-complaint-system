@@ -1,52 +1,28 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { routes } from '@/routes';
 
 interface RouteGuardProps {
-    children: React.ReactNode;
+  children: React.ReactNode;
+  allowedRoles?: string[];
 }
 
-// System-level public routes (no need to register in routes.tsx)
-const SYSTEM_PUBLIC_ROUTES = ['/login', '/403', '/404'];
+const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRoles }) => {
+  const { user, loading, role } = useAuth();
 
-// Derived from routes.tsx: all routes marked with public: true
-const routePublicPaths = routes.filter(r => r.public).map(r => r.path);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-const PUBLIC_ROUTES = [...SYSTEM_PUBLIC_ROUTES, ...routePublicPaths];
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-function matchPublicRoute(path: string, patterns: string[]) {
-    return patterns.some(pattern => {
-        if (pattern.includes('*')) {
-            const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
-            return regex.test(path);
-        }
-        return path === pattern;
-    });
-}
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
-export function RouteGuard({ children }: RouteGuardProps) {
-    const { supabaseUser, isLoading } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+  return <>{children}</>;
+};
 
-    useEffect(() => {
-        if (isLoading) return;
-
-        const isPublic = matchPublicRoute(location.pathname, PUBLIC_ROUTES);
-
-        if (!supabaseUser && !isPublic) {
-            navigate('/login', { state: { from: location.pathname }, replace: true });
-        }
-    }, [supabaseUser, isLoading, location.pathname, navigate]);
-
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
-
-    return <>{children}</>;
-}
+export default RouteGuard;

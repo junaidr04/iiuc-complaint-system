@@ -154,11 +154,11 @@ function Calendar({
           )
         },
         DayButton: CalendarDayButton,
-        WeekNumber: ({ children, ...props }) => {
+        WeekNumber: ({ week, ...props }: { week: { weekNumber: number } }) => {
           return (
             <td {...props}>
               <div className="flex size-[--cell-size] items-center justify-center text-center">
-                {children}
+                {week.weekNumber}
               </div>
             </td>
           )

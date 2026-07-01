@@ -60,7 +60,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ unreadCount = 0, mobileOpen, onMobileClose }) => {
-  const { role, profile, signOut } = useAuth();
+  const { role, user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const navItems = getNavItems(role);
@@ -68,13 +68,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ unreadCount = 0, mobileOpen, o
   const roleLabel = role === 'admin' ? 'Administrator' : role === 'authority' ? 'Authority' : 'Student';
   const RoleIcon = role === 'admin' ? ShieldCheck : role === 'authority' ? ShieldCheck : GraduationCap;
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
+    logout();
     navigate('/login');
   };
 
-  const initials = profile?.name
-    ? profile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+  const initials = user?.name
+    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
 
   const SidebarContent = () => (
@@ -160,12 +160,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ unreadCount = 0, mobileOpen, o
       <div className="px-3 pb-4 pt-2 border-t border-sidebar-border">
         <div className="flex items-center gap-3 rounded-md px-3 py-2">
           <Avatar className="h-8 w-8 shrink-0">
-            <AvatarImage src={profile?.profile_image ?? undefined} alt={profile?.name ?? ''} />
+            <AvatarImage src={user?.profile_image ?? undefined} alt={user?.name ?? ''} />
             <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">{profile?.name ?? 'User'}</p>
-            <p className="text-xs text-muted-foreground truncate">{profile?.email ?? ''}</p>
+            <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.name ?? 'User'}</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email ?? ''}</p>
           </div>
           <Button
             variant="ghost"
