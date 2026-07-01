@@ -1,10 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+interface Complaint {
+  id: string;
+  title: string;
+  category: string;
+  status: string;
+  date: string;
+  statusColor: string;
+}
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userName = savedUser?.name || 'Sparrow';
+
+  // কাউন্টিং স্টেটসমূহ
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+  });
+
+  useEffect(() => {
+    // LocalStorage থেকে কমপ্লেইন ডেটা নিয়ে আসা
+    const savedComplaints: Complaint[] = JSON.parse(localStorage.getItem('user_complaints') || '[]');
+    
+    // যদি লোকাল স্টোরেজে কিছুই না থাকে, তবে ডিফল্ট ২টি দিয়ে কাউন্ট ইনিশিয়ালাইজ করা
+    const complaintsList = savedComplaints.length > 0 ? savedComplaints : [
+      { id: 'CMS-8831', title: 'WiFi router not working in Hall Room 302', category: 'Infrastructure', status: 'In Progress', date: '2026-06-28', statusColor: '' },
+      { id: 'CMS-7412', title: 'Request to reschedule mid-exam lab assignment conflict', category: 'Academic', status: 'Pending', date: '2026-07-01', statusColor: '' }
+    ];
+
+    // স্ট্যাটাস অনুযায়ী ফিল্টার করে রিয়েল কাউন্ট বের করা
+    const total = complaintsList.length;
+    const pending = complaintsList.filter(c => c.status === 'Pending').length;
+    const inProgress = complaintsList.filter(c => c.status === 'In Progress').length;
+    const resolved = complaintsList.filter(c => c.status === 'Resolved').length;
+
+    setStats({ total, pending, inProgress, resolved });
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -24,13 +60,13 @@ export default function StudentDashboard() {
         </button>
       </div>
 
-      {/* Stats Grid */}
+      {/* Dynamic Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { title: 'Total Complaints', count: '2', color: 'text-indigo-400' },
-          { title: 'Pending', count: '1', color: 'text-amber-400' },
-          { title: 'In Progress', count: '1', color: 'text-blue-400' },
-          { title: 'Resolved', count: '0', color: 'text-emerald-400' }
+          { title: 'Total Complaints', count: stats.total, color: 'text-indigo-400' },
+          { title: 'Pending', count: stats.pending, color: 'text-amber-400' },
+          { title: 'In Progress', count: stats.inProgress, color: 'text-blue-400' },
+          { title: 'Resolved', count: stats.resolved, color: 'text-emerald-400' }
         ].map((stat, idx) => (
           <div key={idx} className="bg-gray-800 border border-gray-700 p-6 rounded-xl flex justify-between items-center">
             <div>

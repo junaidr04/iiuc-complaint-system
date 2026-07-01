@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function SubmitComplaintPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     category: 'Academic',
@@ -9,19 +11,38 @@ export default function SubmitComplaintPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Complaint Submitted:', formData);
-    alert('Complaint submission mock successful!');
+
+    // LocalStorage থেকে আগের জমানো কমপ্লেইনগুলো নিয়ে আসা
+    const existingComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
+
+    // নতুন একটি ইউনিক আইডি এবং আজকের ডেট দিয়ে অবজেক্ট তৈরি করা
+    const newComplaint = {
+      id: `CMS-${Math.floor(1000 + Math.random() * 9000)}`,
+      title: formData.title,
+      category: formData.category,
+      description: formData.description,
+      status: 'Pending',
+      date: new Date().toISOString().split('T')[0],
+      statusColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+    };
+
+    // নতুন কমপ্লেইনটি লিস্টের সবার উপরে যোগ করা
+    const updatedComplaints = [newComplaint, ...existingComplaints];
+    localStorage.setItem('user_complaints', JSON.stringify(updatedComplaints));
+
+    alert('Complaint submitted successfully!');
+    
+    // সাবমিট হওয়ার পর সরাসরি My Complaints পেজে পাঠিয়ে দেওয়া
+    navigate('/my-complaints');
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Submit a New Complaint</h1>
         <p className="text-gray-400 text-sm mt-1">Please fill in the details below to log your problem.</p>
       </div>
 
-      {/* Form Container - Fixed Dark Theme */}
       <form onSubmit={handleSubmit} className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-5 shadow-lg">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1.5">Subject / Title</label>
