@@ -1,67 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-
-// Layout
-import AppLayout from './components/layouts/AppLayout';
-
-// Pages Import
 import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import NotificationsPage from './pages/NotificationsPage';
-
-// Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
-import SubmitComplaintPage from './pages/student/SubmitComplaintPage';
-import MyComplaintsPage from './pages/student/MyComplaintsPage';
-import ComplaintDetailsPage from './pages/student/ComplaintDetailsPage';
-
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AnalyticsPage from './pages/admin/AnalyticsPage';
-import UsersPage from './pages/admin/UsersPage';
 import AdminComplaintsPage from './pages/admin/AdminComplaintsPage';
-
-// Authority Pages
-import AuthorityDashboard from './pages/authority/AuthorityDashboard';
-
-// Role-Based Dashboard Picker Component
-function InitialDashboard() {
-  const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const role = savedUser?.role || 'Student';
-
-  if (role === 'Admin') return <AdminDashboard />;
-  if (role === 'Authority') return <AuthorityDashboard />;
-  return <StudentDashboard />;
-}
+// আপনার প্রজেক্টের বাকি পেজগুলো এখানে ইম্পোর্ট করা থাকবে...
 
 export default function App() {
+  const [role, setRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // লোকাল স্টোরেজ থেকে রোল রিড করা হচ্ছে
+    const savedRole = localStorage.getItem('user_role');
+    setRole(savedRole);
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>;
+  }
+
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* ১. পাবলিক অথ রাউটস (লেআউট ছাড়া) */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+    <Router>
+      <Routes>
+        {/* লগইন রাউট */}
+        <Route path="/login" element={<LoginPage />} />
 
-          {/* ২. কোর ড্যাশবোর্ড রাউটস (সবগুলো AppLayout এর ভেতরে থাকবে) */}
-          <Route path="/" element={<AppLayout><InitialDashboard /></AppLayout>} />
-          <Route path="/notifications" element={<AppLayout><NotificationsPage /></AppLayout>} />
-          
-          {/* স্টুডেন্ট প্যানেল */}
-          <Route path="/submit-complaint" element={<AppLayout><SubmitComplaintPage /></AppLayout>} />
-          <Route path="/my-complaints" element={<AppLayout><MyComplaintsPage /></AppLayout>} />
-          <Route path="/complaints/:id" element={<AppLayout><ComplaintDetailsPage /></AppLayout>} />
+        {/* স্টুডেন্ট প্যানেল প্রোটেকশন */}
+        <Route 
+          path="/student/dashboard" 
+          element={
+            role === 'Student' ? <StudentDashboard /> : <Navigate to="/login" replace />
+          } 
+        />
 
-          {/* অ্যাডমিন প্যানেল */}
-          <Route path="/admin/analytics" element={<AppLayout><AnalyticsPage /></AppLayout>} />
-          <Route path="/admin/users" element={<AppLayout><UsersPage /></AppLayout>} />
-          <Route path="/admin/complaints" element={<AppLayout><AdminComplaintsPage /></AppLayout>} />
+        {/* অ্যাডমিন ও অথরিটি প্যানেল প্রোটেকশন */}
+        <Route 
+          path="/admin/complaints" 
+          element={
+            role === 'Admin' || role === 'Authority' ? <AdminComplaintsPage /> : <Navigate to="/login" replace />
+          } 
+        />
 
-          {/* ক্যাচ-অল ফলব্যাক */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+        {/* ডিফল্ট রুট হ্যান্ডলিং */}
+        <Route 
+          path="*" 
+          element={
+            role ? (
+              role === 'Student' ? <Navigate to="/student/dashboard" replace /> : <Navigate to="/admin/complaints" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+      </Routes>
+    </Router>
   );
 }
