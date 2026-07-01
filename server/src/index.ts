@@ -28,7 +28,7 @@ app.get("/", (req: Request, res: Response): void => {
   });
 });
 
-// /api/health
+// Health Check Route
 app.get("/api/health", (req: Request, res: Response): void => {
   res.status(200).json({
     status: "OK",
@@ -38,7 +38,7 @@ app.get("/api/health", (req: Request, res: Response): void => {
   });
 });
 
-// --- FIX: All API Routes Mapping ---
+// API Routes Mapping
 app.use("/api/auth", authRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/departments", departmentRoutes);
@@ -46,7 +46,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/users", userRoutes);
 
-// Server Setup
-app.listen(PORT, () => {
-  console.log(`🚀 Server is strictly running at http://localhost:${PORT}`);
+// Server Setup - Listening on 0.0.0.0 to accept connection from 127.0.0.1 properly
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`🚀 Server is strictly running at http://127.0.0.1:${PORT}`);
 });

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Axios Instance
+// Axios Instance - Using explicit 127.0.0.1 to avoid Windows localhost bug
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -20,7 +20,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// --- FIX: Exporting All Required Missing Functions ---
+// --- Exporting All Required Functions ---
 
 // Notifications API
 export const getNotifications = () => api.get('/notifications').then(res => res.data);
