@@ -1,115 +1,75 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import type { User, UserRole } from '@/types/types';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '@/services/api';
 
-interface AuthContextValue {
-    user: User | null;
-    role: UserRole | null;
-    loading: boolean;
-    isAuthenticated: boolean;
-    login: (email: string, password: string) => Promise<{ error: Error | null }>;
-    register: (
-        name: string,
-        email: string,
-        password: string,
-        role: UserRole,
-        department_id?: string
-    ) => Promise<{ error: Error | null }>;
-    logout: () => void;
-    refreshProfile: () => Promise<void>;
+interface AuthContextType {
+  user: any;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>; // এখানে signIn নিশ্চিত করা হলো
+  signUp: (data: any) => Promise<void>;
+  logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-    const fetchProfile = useCallback(async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setUser(null);
-                setLoading(false);
-                return;
-            }
-            const { data } = await api.get('/auth/me');
-            setUser(data.user);
-        } catch (err) {
-            localStorage.removeItem('token');
-            setUser(null);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  useEffect(() => {
+    // চেক করা হচ্ছে আগে থেকে কোনো ইউজার লগইন করা আছে কিনা
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (token && savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setLoading(false);
+  }, []);
 
-    const refreshProfile = useCallback(async () => {
-        await fetchProfile();
-    }, [fetchProfile]);
+  // FIX: signIn ফাংশনটি সঠিকভাবে ডিফাইন করা হলো
+  const signIn = async (email: string, password: string) => {
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      const { token, user: userData } = response.data;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
+  };
 
-    useEffect(() => {
-        fetchProfile();
-    }, [fetchProfile]);
+  // FIX: signUp ফাংশনটি (রেজিস্ট্রেশনের জন্য)
+  const signUp = async (data: any) => {
+    try {
+      const response = await api.post('/auth/register', data);
+      const { token, user: userData } = response.data;
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
+  };
 
-    const login = async (email: string, password: string) => {
-        try {
-            const { data } = await api.post('/auth/login', { email, password });
-            localStorage.setItem('token', data.token);
-            setUser(data.user);
-            return { error: null };
-        } catch (err: any) {
-            return { error: new Error(err?.response?.data?.message || 'Login failed') };
-        }
-    };
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
-    const register = async (
-        name: string,
-        email: string,
-        password: string,
-        role: UserRole,
-        department_id?: string
-    ) => {
-        try {
-            const { data } = await api.post('/auth/register', {
-                name,
-                email,
-                password,
-                role,
-                department_id,
-            });
-            localStorage.setItem('token', data.token);
-            setUser(data.user);
-            return { error: null };
-        } catch (err: any) {
-            return { error: new Error(err?.response?.data?.message || 'Registration failed') };
-        }
-    };
-
-    const logout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
-    };
-
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                role: user?.role ?? null,
-                loading,
-                isAuthenticated: !!user,
-                login,
-                register,
-                logout,
-                refreshProfile,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
-    const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-    return ctx;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
