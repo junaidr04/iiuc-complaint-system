@@ -121,8 +121,9 @@ function MainLayout() {
 
       // Staff Pages
       case 'staff-dashboard':
+        return <StaffDashboard view="dashboard" onNavigate={handleNavigate} />;
       case 'assigned-complaints':
-        return <StaffDashboard />;
+        return <StaffDashboard view="queue" onNavigate={handleNavigate} />;
 
       // Admin Pages
       case 'admin-dashboard':

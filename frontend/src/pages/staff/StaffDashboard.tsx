@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Complaint } from '../../types';
+import { Complaint, Department } from '../../types';
 import { PriorityBadge, StatusBadge } from '../../components/common/StatusBadge';
 import { ComplaintDetailModal } from '../../components/complaints/ComplaintDetailModal';
 import { downloadComplaintPDFReceipt } from '../../utils/pdfGenerator';
@@ -17,15 +17,48 @@ import {
   Download,
 } from 'lucide-react';
 
-export const StaffDashboard: React.FC = () => {
+interface StaffDashboardProps {
+  view?: 'dashboard' | 'queue';
+  onNavigate?: (page: string) => void;
+}
+
+export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboard', onNavigate }) => {
   const { user } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [myDepartmentId, setMyDepartmentId] = useState<string | null>(null);
 
-  const fetchStaffComplaints = () => {
+  // Staff users only store a department NAME (e.g. "Facilities & Campus
+  // Maintenance"), but complaints are filed against a department ID
+  // (e.g. "dept-maint"). Resolve the name -> id once so we can filter
+  // the complaint queue correctly.
+  const resolveDepartmentId = async (): Promise<string | null> => {
+    if (!user?.department) return null;
+    try {
+      const res = await fetch('/api/departments');
+      const data = await res.json();
+      const match = (data.departments || []).find(
+        (d: Department) => d.name === user.department
+      );
+      return match?.id || null;
+    } catch (err) {
+      console.error('Failed to resolve department id', err);
+      return null;
+    }
+  };
+
+  const fetchStaffComplaints = async () => {
     if (!user) return;
-    fetch(`/api/complaints?departmentId=${user.departmentId || 'dept-1'}`)
+    const deptId = await resolveDepartmentId();
+    setMyDepartmentId(deptId);
+    if (!deptId) {
+      // No matching department found — show nothing rather than a
+      // hard-coded wrong department's queue.
+      setComplaints([]);
+      return;
+    }
+    fetch(`/api/complaints?departmentId=${deptId}`)
       .then((res) => res.json())
       .then((data) => setComplaints(data.complaints || []))
       .catch(console.error);
@@ -55,19 +88,38 @@ export const StaffDashboard: React.FC = () => {
   const resolved = myAssigned.filter((c) => c.status === 'resolved' || c.status === 'closed');
 
   const filteredList = myAssigned.filter((c) => filterStatus === 'all' || c.status === filterStatus);
+  // Dashboard overview only previews the top few most urgent items; the full
+  // filterable queue lives on the "Assigned Complaints" page.
+  const previewList = [...pending, ...inProgress].slice(0, 4);
+  const isDashboard = view === 'dashboard';
+  const listToRender = isDashboard ? previewList : filteredList;
 
   return (
     <div className="space-y-6 py-4">
-      {/* Header Banner */}
-      <div className="p-6 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-3xl text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30 px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">
-            Technician & Staff Portal • {user?.department || 'Department Workspace'}
-          </span>
-          <h1 className="text-2xl font-black tracking-tight">Staff Dispatch Control - {user?.name}</h1>
-          <p className="text-xs text-slate-300 mt-1">Manage field assignments, verify reported issues, upload solution proofs & post status updates.</p>
+      {!myDepartmentId && (
+        <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-xs text-amber-800 dark:text-amber-300 font-medium">
+          ⚠️ Your account's department ("{user?.department}") doesn't match any department in the system.
+          Ask an admin to check your profile in <strong>Manage Users</strong>, or verify the department name matches exactly.
         </div>
-      </div>
+      )}
+
+      {/* Header Banner */}
+      {isDashboard ? (
+        <div className="p-6 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-3xl text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30 px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">
+              Technician & Staff Portal • {user?.department || 'Department Workspace'}
+            </span>
+            <h1 className="text-2xl font-black tracking-tight">Staff Dispatch Control - {user?.name}</h1>
+            <p className="text-xs text-slate-300 mt-1">Manage field assignments, verify reported issues, upload solution proofs & post status updates.</p>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Assigned Complaints</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Full queue for {user?.department || 'your department'} — filter, action, and resolve tickets.</p>
+        </div>
+      )}
 
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -96,27 +148,43 @@ export const StaffDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-bold">
-        {['all', 'pending', 'in_progress', 'resolved'].map((st) => (
-          <button
-            key={st}
-            onClick={() => setFilterStatus(st)}
-            className={`px-3 py-1.5 rounded-xl capitalize transition-all ${
-              filterStatus === st
+      {/* Filter Tabs — only shown on the full queue page */}
+      {!isDashboard && (
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-bold">
+          {['all', 'pending', 'in_progress', 'resolved'].map((st) => (
+            <button
+              key={st}
+              onClick={() => setFilterStatus(st)}
+              className={`px-3 py-1.5 rounded-xl capitalize transition-all ${filterStatus === st
                 ? 'bg-purple-600 text-white shadow-xs'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            {st.replace('_', ' ')}
-          </button>
-        ))}
-      </div>
+                }`}
+            >
+              {st.replace('_', ' ')}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Dashboard-mode preview heading */}
+      {isDashboard && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">Priority Queue Preview</h2>
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('assigned-complaints')}
+              className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline"
+            >
+              View All Assigned Complaints →
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Complaint List Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredList.length > 0 ? (
-          filteredList.map((c) => (
+        {listToRender.length > 0 ? (
+          listToRender.map((c) => (
             <div
               key={c.id}
               className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs space-y-3 flex flex-col justify-between"
@@ -179,7 +247,9 @@ export const StaffDashboard: React.FC = () => {
         ) : (
           <div className="col-span-2 p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
             <Building2 className="w-10 h-10 text-slate-300 mx-auto" />
-            <p className="font-bold text-sm text-slate-700 dark:text-slate-300">No Complaints Found in Queue</p>
+            <p className="font-bold text-sm text-slate-700 dark:text-slate-300">
+              {isDashboard ? 'No urgent items right now — queue is clear.' : 'No Complaints Found in Queue'}
+            </p>
           </div>
         )}
       </div>

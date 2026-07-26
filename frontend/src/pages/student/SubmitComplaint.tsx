@@ -8,7 +8,6 @@ import {
   MapPin,
   Image as ImageIcon,
   ShieldAlert,
-  Sparkles,
   Send,
   UserX,
   Phone,
@@ -29,6 +28,7 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
   const [description, setDescription] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [category, setCategory] = useState('');
+  const [priority, setPriority] = useState<string>('medium');
   const [building, setBuilding] = useState('Science Complex - Block B');
   const [roomNumber, setRoomNumber] = useState('Room 304');
   const [location, setLocation] = useState('');
@@ -115,6 +115,7 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
           description,
           departmentId,
           category,
+          priority,
           building,
           roomNumber,
           location,
@@ -154,14 +155,6 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
             Submit problem details with AI assistance & duplicate checking
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleAnalyzeWithAI}
-          disabled={!description || isAiLoading}
-          className="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300" /> Run AI Diagnostics
-        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -169,12 +162,6 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
         <AISmartAssistant
           analysis={aiAnalysis}
           isLoading={isAiLoading}
-          onApplyCategory={(catName) => {
-            setCategory(catName);
-            const foundCat = categories.find((c) => c.name === catName);
-            if (foundCat) setDepartmentId(foundCat.departmentId);
-          }}
-          onApplyPriority={() => {}}
         />
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
@@ -256,6 +243,23 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
                 )}
               </select>
             </div>
+          </div>
+
+          {/* Priority Level (set manually, or via "Apply Priority" from AI Diagnostics) */}
+          <div>
+            <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+              Priority Level
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium capitalize"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical Emergency</option>
+            </select>
           </div>
 
           {/* Description */}

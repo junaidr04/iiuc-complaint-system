@@ -5,15 +5,11 @@ import { Sparkles, AlertTriangle, Lightbulb, CheckCircle, ShieldAlert } from 'lu
 interface AISmartAssistantProps {
   analysis: AIAnalysisResult | null;
   isLoading: boolean;
-  onApplyCategory: (cat: string) => void;
-  onApplyPriority: (priority: any) => void;
 }
 
 export const AISmartAssistant: React.FC<AISmartAssistantProps> = ({
   analysis,
   isLoading,
-  onApplyCategory,
-  onApplyPriority,
 }) => {
   if (isLoading) {
     return (
@@ -49,34 +45,16 @@ export const AISmartAssistant: React.FC<AISmartAssistantProps> = ({
         </span>
       </div>
 
-      {/* Categorization & Priority Recommendation Cards */}
+      {/* Categorization & Priority Recommendation Cards (read-only, no apply buttons) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Predicted Category</span>
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{analysis.predictedCategory}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onApplyCategory(analysis.predictedCategory)}
-            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors"
-          >
-            Apply Category
-          </button>
+        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-indigo-100 dark:border-slate-700">
+          <span className="text-[10px] text-slate-400 uppercase font-bold block">Predicted Category</span>
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{analysis.predictedCategory}</span>
         </div>
 
-        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-indigo-100 dark:border-slate-700 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Predicted Priority</span>
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 capitalize">{analysis.predictedPriority}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onApplyPriority(analysis.predictedPriority)}
-            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-lg border border-indigo-200 transition-colors"
-          >
-            Apply Priority
-          </button>
+        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-indigo-100 dark:border-slate-700">
+          <span className="text-[10px] text-slate-400 uppercase font-bold block">Predicted Priority</span>
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 capitalize">{analysis.predictedPriority}</span>
         </div>
       </div>
 
