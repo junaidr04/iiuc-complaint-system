@@ -511,6 +511,7 @@ app.put("/api/complaints/:id", async (req, res) => {
     solutionNotes,
     solutionImageUrls,
     expectedCompletionDate,
+    rating,
   } = req.body;
 
   let complaint: Complaint | null = null;
@@ -545,6 +546,7 @@ app.put("/api/complaints/:id", async (req, res) => {
     ...(solutionNotes && { solutionNotes }),
     ...(solutionImageUrls && { solutionImageUrls }),
     ...(expectedCompletionDate && { expectedCompletionDate }),
+    ...(rating && { rating }),
     remarks: updatedRemarks,
     updatedDate: new Date().toISOString(),
   };

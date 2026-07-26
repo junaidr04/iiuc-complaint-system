@@ -285,121 +285,121 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
                 <h4 className="font-bold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                   Staff & Admin Control Actions
                 </h4>
-                <div className="flex flex-wrap gap-2">
-                  {complaint.status !== 'in_progress' && (
-                    <button
-                      onClick={() => handleUpdateStatus('in_progress')}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg transition-colors"
-                    >
-                      Set In Progress
-                    </button>
-                  )}
-                  {complaint.status !== 'resolved' && (
-                    <button
-                      onClick={() => handleUpdateStatus('resolved')}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-lg transition-colors"
-                    >
-                      Mark Resolved
-                    </button>
-                  )}
-                  {complaint.status !== 'rejected' && (
-                    <button
-                      onClick={() => handleUpdateStatus('rejected')}
-                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs rounded-lg transition-colors"
-                    >
-                      Reject Complaint
-                    </button>
-                  )}
-                </div>
 
-                {/* Solution Notes Input Form */}
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    Add Official Solution Proof Notes
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={solutionNotes}
-                    onChange={(e) => setSolutionNotes(e.target.value)}
-                    placeholder="Describe how the problem was inspected and repaired..."
-                    className="w-full p-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
-                  />
-                  <input
-                    type="text"
-                    value={solutionImgUrl}
-                    onChange={(e) => setSolutionImgUrl(e.target.value)}
-                    placeholder="Optional Solution Proof Image URL (https://...)"
-                    className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
-                  />
-                  <button
-                    onClick={handleResolveComplaint}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors"
-                  >
-                    Submit Official Resolution
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Student Feedback & Service Rating for Resolved Complaints */}
-            {complaint.status === 'resolved' && (currentUserRole === 'student' || complaint.rating) && (
-              <div className="p-4 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl space-y-3">
-                <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-bold text-xs uppercase tracking-wider">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  Service Resolution Rating & Feedback
-                </div>
-
-                {complaint.rating ? (
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          className={`w-4 h-4 ${s <= complaint.rating!.score ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`}
-                        />
-                      ))}
-                      <span className="text-xs font-bold ml-2 text-slate-800 dark:text-slate-200">{complaint.rating.score}/5 Stars</span>
-                    </div>
-                    {complaint.rating.comment && (
-                      <p className="text-xs text-slate-700 dark:text-slate-300 italic">"{complaint.rating.comment}"</p>
-                    )}
+                {complaint.status === 'resolved' || complaint.status === 'closed' ? (
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-semibold text-xs bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+                    <CheckCircle className="w-4 h-4" />
+                    This complaint has already been {complaint.status === 'closed' ? 'closed' : 'marked resolved'}. No further action needed.
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
-                      The department marked this complaint as resolved. How satisfied are you with the resolution speed and service?
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3, 4, 5].map((s) => (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {complaint.status !== 'in_progress' && (
                         <button
-                          key={s}
-                          onClick={() => setRatingScore(s)}
-                          className={`p-2 rounded-lg border transition-all ${
-                            ratingScore >= s ? 'bg-amber-100 border-amber-400 text-amber-700' : 'bg-white border-slate-200 text-slate-400'
-                          }`}
+                          onClick={() => handleUpdateStatus('in_progress')}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg transition-colors"
                         >
-                          <Star className={`w-5 h-5 ${ratingScore >= s ? 'fill-amber-500 text-amber-500' : ''}`} />
+                          Set In Progress
                         </button>
-                      ))}
+                      )}
+                      <button
+                        onClick={() => handleUpdateStatus('rejected')}
+                        className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs rounded-lg transition-colors"
+                      >
+                        Reject Complaint
+                      </button>
                     </div>
-                    <textarea
-                      rows={2}
-                      value={ratingComment}
-                      onChange={(e) => setRatingComment(e.target.value)}
-                      placeholder="Optional feedback comments..."
-                      className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
-                    />
-                    <button
-                      onClick={handleSubmitRating}
-                      disabled={isSubmittingRating}
-                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg transition-colors"
-                    >
-                      Submit Service Feedback
-                    </button>
-                  </div>
+
+                    {/* Solution Notes Input Form */}
+                    <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Add Official Solution Proof Notes
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={solutionNotes}
+                        onChange={(e) => setSolutionNotes(e.target.value)}
+                        placeholder="Describe how the problem was inspected and repaired..."
+                        className="w-full p-2.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
+                      />
+                      <input
+                        type="text"
+                        value={solutionImgUrl}
+                        onChange={(e) => setSolutionImgUrl(e.target.value)}
+                        placeholder="Optional Solution Proof Image URL (https://...)"
+                        className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
+                      />
+                      <button
+                        onClick={handleResolveComplaint}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors"
+                      >
+                        Submit Official Resolution
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             )}
+
+            {/* Student Feedback & Service Rating for Resolved/Closed Complaints */}
+            {(complaint.status === 'resolved' || complaint.status === 'closed') &&
+              (currentUserRole === 'student' || complaint.rating) && (
+                <div className="p-4 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-bold text-xs uppercase tracking-wider">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    Service Resolution Rating & Feedback
+                  </div>
+
+                  {complaint.rating ? (
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            className={`w-4 h-4 ${s <= complaint.rating!.score ? 'text-amber-500 fill-amber-500' : 'text-slate-300'}`}
+                          />
+                        ))}
+                        <span className="text-xs font-bold ml-2 text-slate-800 dark:text-slate-200">{complaint.rating.score}/5 Stars</span>
+                      </div>
+                      {complaint.rating.comment && (
+                        <p className="text-xs text-slate-700 dark:text-slate-300 italic">"{complaint.rating.comment}"</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        The department marked this complaint as resolved. How satisfied are you with the resolution speed and service?
+                      </p>
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setRatingScore(s)}
+                            className={`p-2 rounded-lg border transition-all ${ratingScore >= s ? 'bg-amber-100 border-amber-400 text-amber-700' : 'bg-white border-slate-200 text-slate-400'
+                              }`}
+                          >
+                            <Star className={`w-5 h-5 ${ratingScore >= s ? 'fill-amber-500 text-amber-500' : ''}`} />
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={ratingComment}
+                        onChange={(e) => setRatingComment(e.target.value)}
+                        placeholder="Optional feedback comments..."
+                        className="w-full p-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
+                      />
+                      <button
+                        onClick={handleSubmitRating}
+                        disabled={isSubmittingRating}
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg transition-colors"
+                      >
+                        Submit Service Feedback
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
             {/* Remarks History & Add Remark */}
             <div>
