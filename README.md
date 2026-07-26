@@ -2,14 +2,6 @@
 
 A full-stack MERN application that digitizes complaint handling for International Islamic University Chittagong (IIUC) — students raise and track complaints, staff resolve them by department, and admins get a full analytics and moderation console.
 
-<!--
-  Add real screenshots once the app is deployed / running locally.
-  Suggested shots: student dashboard, submit-complaint form, admin analytics, staff queue.
-  Drop images into a `docs/screenshots/` folder and update the paths below.
--->
-![Student Dashboard](docs/screenshots/student-dashboard.png)
-![Admin Analytics](docs/screenshots/admin-dashboard.png)
-
 ---
 
 ## ✨ Features
@@ -140,5 +132,5 @@ Or register a new student account from the UI.
 ## 👤 Author
 
 **Junaid Bin Jahangir**
-CSE, International Islamic University Chittagong (IIUC) — Batch 2022–2026
+CSE, International Islamic University Chittagong (IIUC) — Batch 2024–2028
 GitHub: [@junaidr04](https://github.com/junaidr04)
