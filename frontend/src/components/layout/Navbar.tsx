@@ -54,6 +54,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
+  // Marks a single notification as read (both on the server and locally,
+  // so the bell badge count updates immediately without a full refetch).
+  const handleNotificationClick = async (n: AppNotification) => {
+    setIsNotifOpen(false);
+
+    if (!n.read) {
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
+      );
+      try {
+        await fetch(`/api/notifications/${n.id}/read`, {
+          method: 'PUT',
+        });
+      } catch (err) {
+        console.error('Failed to mark notification as read', err);
+      }
+    }
+
+    if (n.complaintId) onNavigate('my-complaints');
+    else onNavigate('notifications');
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     onSearch(e.target.value);
@@ -155,16 +177,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
                       notifications.map((n) => (
                         <div
                           key={n.id}
-                          onClick={() => {
-                            setIsNotifOpen(false);
-                            if (n.complaintId) onNavigate('my-complaints');
-                            else onNavigate('notifications');
-                          }}
-                          className={`p-2.5 rounded-xl border text-xs transition-all cursor-pointer hover:border-blue-300 dark:hover:border-blue-700 ${
-                            n.read
+                          onClick={() => handleNotificationClick(n)}
+                          className={`p-2.5 rounded-xl border text-xs transition-all cursor-pointer hover:border-blue-300 dark:hover:border-blue-700 ${n.read
                               ? 'bg-slate-50 dark:bg-slate-950 border-slate-100 dark:border-slate-800/60 opacity-80'
                               : 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 font-medium'
-                          }`}
+                            }`}
                         >
                           <p className="font-bold text-slate-800 dark:text-slate-100">{n.title}</p>
                           <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-0.5">{n.message}</p>

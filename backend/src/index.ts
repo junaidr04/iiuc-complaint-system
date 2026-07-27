@@ -142,6 +142,23 @@ function addAuditLog(userId: string, userName: string, userRole: any, action: st
   }
 }
 
+// Helper: fetch all admin users (used to broadcast admin-facing notifications)
+async function getAllAdmins(): Promise<any[]> {
+  if (isMongo) {
+    return await UserModel.find({ role: "admin" } as any).lean();
+  }
+  return users.filter((u) => u.role === "admin");
+}
+
+// Helper: create a notification for a specific user (handles both storage modes)
+async function createNotification(notif: AppNotification) {
+  if (isMongo) {
+    await NotificationModel.create(notif);
+  } else {
+    notifications.unshift(notif);
+  }
+}
+
 // ----------------------------------------------------
 // AUTH ENDPOINTS
 // ----------------------------------------------------
@@ -481,10 +498,22 @@ app.post("/api/complaints", async (req, res) => {
     date: new Date().toISOString(),
   };
 
-  if (isMongo) {
-    await NotificationModel.create(notifObj);
-  } else {
-    notifications.unshift(notifObj);
+  await createNotification(notifObj);
+
+  // Notify all admins so they know a new ticket needs department assignment
+  const allAdmins = await getAllAdmins();
+  for (const adminUser of allAdmins) {
+    const adminNotif: AppNotification = {
+      id: `notif-${Date.now()}-adm-${adminUser.id}`,
+      userId: adminUser.id,
+      title: "New Complaint Submitted",
+      message: `New ticket ${complaintId} ("${title}") was submitted and needs department assignment.`,
+      type: "status_update",
+      complaintId,
+      read: false,
+      date: new Date().toISOString(),
+    };
+    await createNotification(adminNotif);
   }
 
   addAuditLog(
@@ -570,11 +599,7 @@ app.put("/api/complaints/:id", async (req, res) => {
     date: new Date().toISOString(),
   };
 
-  if (isMongo) {
-    await NotificationModel.create(notif);
-  } else {
-    notifications.unshift(notif);
-  }
+  await createNotification(notif);
 
   // Notify every staff member in the responsible department when the
   // complaint is newly assigned to that department's queue (this is the
@@ -598,11 +623,26 @@ app.put("/api/complaints/:id", async (req, res) => {
         read: false,
         date: new Date().toISOString(),
       };
-      if (isMongo) {
-        await NotificationModel.create(staffNotif);
-      } else {
-        notifications.unshift(staffNotif);
-      }
+      await createNotification(staffNotif);
+    }
+  }
+
+  // Notify all admins when a ticket is marked resolved, so they can track
+  // resolution progress without manually checking every department queue.
+  if (status === "resolved") {
+    const allAdmins = await getAllAdmins();
+    for (const adminUser of allAdmins) {
+      const adminNotif: AppNotification = {
+        id: `notif-${Date.now()}-adm-${adminUser.id}`,
+        userId: adminUser.id,
+        title: "Ticket Resolved",
+        message: `Ticket ${complaint.id} ("${complaint.title}") was marked resolved by staff.`,
+        type: "status_update",
+        complaintId: complaint.id,
+        read: false,
+        date: new Date().toISOString(),
+      };
+      await createNotification(adminNotif);
     }
   }
 
@@ -833,6 +873,19 @@ app.get("/api/notifications", async (req, res) => {
     notifList = notifications.filter((n) => n.userId === userId);
   }
   return res.json({ notifications: notifList });
+});
+
+// Mark a single notification as read (used when the user clicks on it
+// in the bell dropdown, so the unread badge count decreases right away).
+app.put("/api/notifications/:id/read", async (req, res) => {
+  const { id } = req.params;
+  if (isMongo) {
+    await NotificationModel.updateOne({ id } as any, { $set: { read: true } });
+  } else {
+    const idx = notifications.findIndex((n) => n.id === id);
+    if (idx !== -1) notifications[idx].read = true;
+  }
+  return res.json({ success: true });
 });
 
 app.put("/api/notifications/read-all", async (req, res) => {
