@@ -49,82 +49,17 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
   const [ratingScore, setRatingScore] = useState(5);
   const [ratingComment, setRatingComment] = useState('');
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
-  const [staffList, setStaffList] = useState<{ id: string; name: string; department?: string }[]>([]);
-  const [selectedStaffId, setSelectedStaffId] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
-  const [newStaffName, setNewStaffName] = useState('');
-  const [newStaffEmail, setNewStaffEmail] = useState('');
-  const [isCreatingStaff, setIsCreatingStaff] = useState(false);
 
-  // Admin can hand-pick which staff member handles a complaint. Only staff
-  // belonging to the complaint's own department are shown as options.
-  const refreshStaffList = () => {
-    if (currentUserRole !== 'admin' || !complaint) return;
-    fetch('/api/users?role=staff')
-      .then((res) => res.json())
-      .then((data) => {
-        const deptStaff = (data.users || []).filter(
-          (u: any) => u.department === complaint.departmentName
-        );
-        setStaffList(deptStaff);
-      })
-      .catch(console.error);
-  };
-
-  useEffect(() => {
-    refreshStaffList();
-  }, [currentUserRole, complaint?.id, complaint?.departmentName]);
-
-  const handleAssignStaff = async () => {
-    if (!selectedStaffId) return;
-    const staff = staffList.find((s) => s.id === selectedStaffId);
-    if (!staff) return;
+  const handleAssignToDepartmentStaff = async () => {
     setIsAssigning(true);
     await onUpdateComplaint(complaint.id, {
-      assignedStaffId: staff.id,
-      assignedStaffName: staff.name,
       status: complaint.status === 'pending' ? 'assigned' : complaint.status,
       authorRole: currentUserRole,
       authorName: 'Central Admin',
-      remarkText: `Assigned to ${staff.name} by Central Admin`,
+      remarkText: `Assigned to ${complaint.departmentName} department staff by Central Admin`,
     });
     setIsAssigning(false);
-  };
-
-  const handleCreateAndAssignStaff = async () => {
-    if (!newStaffName.trim() || !newStaffEmail.trim()) return;
-    setIsCreatingStaff(true);
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newStaffName.trim(),
-          email: newStaffEmail.trim(),
-          role: 'staff',
-          department: complaint.departmentName,
-        }),
-      });
-      const data = await res.json();
-      const newStaff = data.user;
-      if (res.ok && newStaff) {
-        // Immediately assign the complaint to the staff member we just created.
-        await onUpdateComplaint(complaint.id, {
-          assignedStaffId: newStaff.id,
-          assignedStaffName: newStaff.name,
-          status: complaint.status === 'pending' ? 'assigned' : complaint.status,
-          authorRole: currentUserRole,
-          authorName: 'Central Admin',
-          remarkText: `${newStaff.name} added and assigned by Central Admin`,
-        });
-        setNewStaffName('');
-        setNewStaffEmail('');
-        refreshStaffList();
-      }
-    } catch (err) {
-      console.error('Failed to create staff', err);
-    }
-    setIsCreatingStaff(false);
   };
 
   const handleAddRemark = async () => {
@@ -157,6 +92,17 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
     });
     setSolutionNotes('');
     setSolutionImgUrl('');
+  };
+
+  const handleClaimForMyself = async () => {
+    await onUpdateComplaint(complaint.id, {
+      assignedStaffId: currentUserId,
+      assignedStaffName: 'Me',
+      status: complaint.status === 'pending' || complaint.status === 'assigned' ? 'in_progress' : complaint.status,
+      authorRole: currentUserRole,
+      authorName: 'Department Staff',
+      remarkText: `Claimed and picked up by staff member`,
+    });
   };
 
   const handleSubmitRating = async () => {
@@ -356,64 +302,42 @@ export const ComplaintDetailModal: React.FC<ComplaintDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Admin-only: Assign complaint to a specific staff member */}
-            {currentUserRole === 'admin' && (
+            {/* Admin-only: assign this complaint to the responsible department's queue (no staff picker) */}
+            {currentUserRole === 'admin' && !complaint.assignedStaffId && (
               <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-900 space-y-3">
                 <h4 className="font-bold text-xs text-purple-800 dark:text-purple-300 uppercase tracking-wider">
                   Assign to Staff ({complaint.departmentName})
                 </h4>
-                {staffList.length > 0 ? (
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <select
-                      value={selectedStaffId}
-                      onChange={(e) => setSelectedStaffId(e.target.value)}
-                      className="flex-1 p-2 text-xs rounded-lg border border-purple-300 dark:border-purple-800 bg-white dark:bg-slate-900"
-                    >
-                      <option value="">Select a staff member...</option>
-                      {staffList.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={handleAssignStaff}
-                      disabled={!selectedStaffId || isAssigning}
-                      className="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors whitespace-nowrap"
-                    >
-                      {isAssigning ? 'Assigning...' : 'Assign Complaint'}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-xs text-purple-700 dark:text-purple-400">
-                      No staff exist for this department yet. Add one now and it will be assigned immediately:
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={newStaffName}
-                        onChange={(e) => setNewStaffName(e.target.value)}
-                        placeholder="Staff full name"
-                        className="flex-1 p-2 text-xs rounded-lg border border-purple-300 dark:border-purple-800 bg-white dark:bg-slate-900"
-                      />
-                      <input
-                        type="email"
-                        value={newStaffEmail}
-                        onChange={(e) => setNewStaffEmail(e.target.value)}
-                        placeholder="staff@campus.com"
-                        className="flex-1 p-2 text-xs rounded-lg border border-purple-300 dark:border-purple-800 bg-white dark:bg-slate-900"
-                      />
-                      <button
-                        onClick={handleCreateAndAssignStaff}
-                        disabled={!newStaffName.trim() || !newStaffEmail.trim() || isCreatingStaff}
-                        className="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors whitespace-nowrap"
-                      >
-                        {isCreatingStaff ? 'Creating...' : 'Create & Assign'}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={handleAssignToDepartmentStaff}
+                  disabled={isAssigning}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors"
+                >
+                  {isAssigning ? 'Assigning...' : 'Assign to Staff'}
+                </button>
+                <p className="text-[11px] text-purple-700 dark:text-purple-400">
+                  This puts the complaint into the {complaint.departmentName} queue. Any staff member in that department can pick it up from their dashboard.
+                </p>
+              </div>
+            )}
+            {currentUserRole === 'admin' && complaint.assignedStaffId && (
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                ✅ Assigned — {complaint.assignedStaffName || 'a staff member'} is handling this complaint.
+              </div>
+            )}
+
+            {/* Staff-only: claim an unclaimed complaint for themselves */}
+            {currentUserRole === 'staff' && !complaint.assignedStaffId && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-900 space-y-2">
+                <h4 className="font-bold text-xs text-blue-800 dark:text-blue-300 uppercase tracking-wider">
+                  This ticket is unclaimed
+                </h4>
+                <button
+                  onClick={handleClaimForMyself}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors"
+                >
+                  Claim This Ticket
+                </button>
               </div>
             )}
 

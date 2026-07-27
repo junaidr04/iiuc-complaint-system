@@ -210,7 +210,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboar
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <StatusBadge status={c.status} size="sm" />
                 <div className="flex items-center gap-1.5">
-                  {c.status === 'pending' && (
+                  {(c.status === 'pending' || c.status === 'assigned') && (
                     <button
                       onClick={() => handleUpdateComplaint(c.id, { status: 'in_progress', assignedStaffId: user?.id, assignedStaffName: user?.name })}
                       className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg transition-colors"

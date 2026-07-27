@@ -558,7 +558,7 @@ app.put("/api/complaints/:id", async (req, res) => {
     complaints[idx] = updatedObj;
   }
 
-  // Create Notification
+  // Notify the student who filed the ticket
   const notif: AppNotification = {
     id: `notif-${Date.now()}`,
     userId: complaint.studentId,
@@ -574,6 +574,36 @@ app.put("/api/complaints/:id", async (req, res) => {
     await NotificationModel.create(notif);
   } else {
     notifications.unshift(notif);
+  }
+
+  // Notify every staff member in the responsible department when the
+  // complaint is newly assigned to that department's queue (this is the
+  // remark text ComplaintDetailModal sends from "Assign to Staff").
+  if (remarkText && remarkText.includes("Assigned to") && remarkText.includes("department staff")) {
+    let deptStaff: any[] = [];
+    if (isMongo) {
+      deptStaff = await UserModel.find({ role: "staff", department: complaint.departmentName } as any).lean();
+    } else {
+      deptStaff = users.filter((u) => u.role === "staff" && u.department === complaint.departmentName);
+    }
+
+    for (const staffUser of deptStaff) {
+      const staffNotif: AppNotification = {
+        id: `notif-${Date.now()}-${staffUser.id}`,
+        userId: staffUser.id,
+        title: "New Complaint Assigned",
+        message: `Ticket ${complaint.id} ("${complaint.title}") has been assigned to your department queue.`,
+        type: "status_update",
+        complaintId: complaint.id,
+        read: false,
+        date: new Date().toISOString(),
+      };
+      if (isMongo) {
+        await NotificationModel.create(staffNotif);
+      } else {
+        notifications.unshift(staffNotif);
+      }
+    }
   }
 
   addAuditLog(
