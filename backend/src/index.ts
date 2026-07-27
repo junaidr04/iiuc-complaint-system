@@ -850,6 +850,70 @@ app.get("/api/users", async (req, res) => {
   return res.json({ users: userList });
 });
 
+// Create a new user account (used by Admin > Manage Users > "Add Staff
+// Member" form). Supports creating staff, admin, or student accounts.
+// A default password is generated and returned so the admin can share it.
+app.post("/api/users", async (req, res) => {
+  const { name, email, role, department, phone } = req.body;
+
+  if (!name || !email || !role) {
+    return res.status(400).json({ error: "Name, email, and role are required." });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+
+  // Check for duplicate email
+  if (isMongo) {
+    const existing = await UserModel.findOne({ email: cleanEmail } as any);
+    if (existing) {
+      return res.status(400).json({ error: "An account with this email address already exists." });
+    }
+  } else {
+    const existing = users.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      return res.status(400).json({ error: "An account with this email address already exists." });
+    }
+  }
+
+  const defaultPassword = "Welcome@123";
+  const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+  const userId = `usr-${role}-${Date.now()}`;
+
+  const newUserDTO: User = {
+    id: userId,
+    name,
+    email: cleanEmail,
+    role,
+    status: "active",
+    avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
+    department: role === "staff" ? department : undefined,
+    phone: phone || "",
+    createdAt: new Date().toISOString(),
+  };
+
+  if (isMongo) {
+    await UserModel.create({
+      ...newUserDTO,
+      password: passwordHash,
+    });
+  } else {
+    users.push({
+      ...newUserDTO,
+      passwordHash,
+    });
+  }
+
+  addAuditLog(
+    "admin",
+    "Central Admin",
+    "admin",
+    "CREATE_USER",
+    `Created new ${role} account for ${name} (${cleanEmail})`
+  );
+
+  return res.json({ success: true, defaultPassword });
+});
+
 app.put("/api/users/:id/status", async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
