@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Department, Category } from '../../types';
 import { Building2, Plus, Wrench, Shield, CheckCircle2 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 export const ManageDepartments: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 
   const fetchDepts = () => {
-    fetch('/api/departments')
+    apiFetch('/api/departments')
       .then((res) => res.json())
       .then((d) => setDepartments(d.departments || []));
-    fetch('/api/categories')
+    apiFetch('/api/categories')
       .then((res) => res.json())
       .then((c) => setCategories(c.categories || []));
   };

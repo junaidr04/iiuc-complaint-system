@@ -11,6 +11,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 export const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -27,14 +28,14 @@ export const ManageUsers: React.FC = () => {
   const [createUserError, setCreateUserError] = useState('');
 
   const fetchUsers = () => {
-    fetch('/api/users')
+    apiFetch('/api/users')
       .then((res) => res.json())
       .then((d) => setUsers(d.users || []))
       .catch(console.error);
   };
 
   const fetchDepartments = () => {
-    fetch('/api/departments')
+    apiFetch('/api/departments')
       .then((res) => res.json())
       .then((d) => {
         const list: Department[] = d.departments || [];
@@ -56,7 +57,7 @@ export const ManageUsers: React.FC = () => {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateUserError('');
-    const res = await fetch('/api/users', {
+    const res = await apiFetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -122,8 +123,8 @@ export const ManageUsers: React.FC = () => {
               key={r}
               onClick={() => setRoleFilter(r)}
               className={`px-3 py-1.5 rounded-xl capitalize font-bold transition-all ${roleFilter === r
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
             >
               {r}s

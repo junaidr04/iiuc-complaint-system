@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Announcement } from '../../types';
 import { Megaphone, Plus, Bell, Calendar, ShieldAlert } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 export const ManageAnnouncements: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -9,7 +10,7 @@ export const ManageAnnouncements: React.FC = () => {
   const [category, setCategory] = useState('Maintenance');
 
   const fetchAnnouncements = () => {
-    fetch('/api/announcements')
+    apiFetch('/api/announcements')
       .then((res) => res.json())
       .then((d) => setAnnouncements(d.announcements || []));
   };
@@ -21,7 +22,7 @@ export const ManageAnnouncements: React.FC = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !content) return;
-    const res = await fetch('/api/announcements', {
+    const res = await apiFetch('/api/announcements', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

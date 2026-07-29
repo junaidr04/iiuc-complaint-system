@@ -16,6 +16,7 @@ import {
   UserCheck,
   Download,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface StaffDashboardProps {
   view?: 'dashboard' | 'queue';
@@ -36,7 +37,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboar
   const resolveDepartmentId = async (): Promise<string | null> => {
     if (!user?.department) return null;
     try {
-      const res = await fetch('/api/departments');
+      const res = await apiFetch('/api/departments');
       const data = await res.json();
       const match = (data.departments || []).find(
         (d: Department) => d.name === user.department
@@ -58,7 +59,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboar
       setComplaints([]);
       return;
     }
-    fetch(`/api/complaints?departmentId=${deptId}`)
+    apiFetch(`/api/complaints?departmentId=${deptId}`)
       .then((res) => res.json())
       .then((data) => setComplaints(data.complaints || []))
       .catch(console.error);
@@ -69,14 +70,14 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboar
   }, [user]);
 
   const handleUpdateComplaint = async (id: string, updateData: any) => {
-    await fetch(`/api/complaints/${id}`, {
+    await apiFetch(`/api/complaints/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateData),
     });
     fetchStaffComplaints();
     if (selectedComplaint && selectedComplaint.id === id) {
-      const res = await fetch(`/api/complaints/${id}`);
+      const res = await apiFetch(`/api/complaints/${id}`);
       const data = await res.json();
       setSelectedComplaint(data.complaint);
     }

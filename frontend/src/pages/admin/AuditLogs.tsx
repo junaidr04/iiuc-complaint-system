@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { AuditLog } from '../../types';
 import { History, ShieldCheck, Star } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 export const AuditLogs: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
-    fetch('/api/audit-logs')
+    apiFetch('/api/audit-logs')
       .then((res) => res.json())
       .then((d) => setAuditLogs(d.auditLogs || []));
   }, []);

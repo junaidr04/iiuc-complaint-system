@@ -13,6 +13,7 @@ import {
   Phone,
   AlertTriangle,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface SubmitComplaintProps {
   onNavigate: (page: string) => void;
@@ -43,7 +44,7 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch('/api/departments')
+    apiFetch('/api/departments')
       .then((res) => res.json())
       .then((d) => {
         setDepartments(d.departments || []);
@@ -52,7 +53,7 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
         }
       });
 
-    fetch('/api/categories')
+    apiFetch('/api/categories')
       .then((res) => res.json())
       .then((c) => {
         setCategories(c.categories || []);
@@ -70,7 +71,7 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
     if (!title.trim() && !description.trim()) return;
     setIsAiLoading(true);
     try {
-      const res = await fetch('/api/ai/analyze-complaint', {
+      const res = await apiFetch('/api/ai/analyze-complaint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,7 +108,7 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/complaints', {
+      const res = await apiFetch('/api/complaints', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

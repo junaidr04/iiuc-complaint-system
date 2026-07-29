@@ -4,6 +4,7 @@ import { PriorityBadge, StatusBadge } from '../../components/common/StatusBadge'
 import { ComplaintDetailModal } from '../../components/complaints/ComplaintDetailModal';
 import { downloadComplaintPDFReceipt } from '../../utils/pdfGenerator';
 import { FileText, Search, Filter, Wrench, ShieldAlert, Download } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 export const ManageComplaints: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -13,7 +14,7 @@ export const ManageComplaints: React.FC = () => {
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
   const fetchComplaints = () => {
-    fetch('/api/complaints')
+    apiFetch('/api/complaints')
       .then((res) => res.json())
       .then((d) => setComplaints(d.complaints || []));
   };
@@ -23,14 +24,14 @@ export const ManageComplaints: React.FC = () => {
   }, []);
 
   const handleUpdateComplaint = async (id: string, updateData: any) => {
-    await fetch(`/api/complaints/${id}`, {
+    await apiFetch(`/api/complaints/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateData),
     });
     fetchComplaints();
     if (selectedComplaint && selectedComplaint.id === id) {
-      const res = await fetch(`/api/complaints/${id}`);
+      const res = await apiFetch(`/api/complaints/${id}`);
       const data = await res.json();
       setSelectedComplaint(data.complaint);
     }

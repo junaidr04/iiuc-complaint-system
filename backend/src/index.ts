@@ -4,6 +4,7 @@ import cors from "cors";
 import { GoogleGenAI } from "@google/genai";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "./db.js";
+import { authenticate, authorize, generateToken } from "./middleware/auth.js";
 import { UserModel } from "./models/User.js";
 import { ComplaintModel } from "./models/Complaint.js";
 import { DepartmentModel } from "./models/Department.js";
@@ -221,8 +222,15 @@ app.post("/api/auth/login", async (req, res) => {
 
   addAuditLog(userDTO.id, userDTO.name, userDTO.role, "USER_LOGIN", `Logged in successfully as ${userDTO.role}`);
 
+  const token = generateToken({
+    id: userDTO.id,
+    role: userDTO.role,
+    name: userDTO.name,
+    email: userDTO.email,
+  });
+
   return res.json({
-    token: `ccms-token-${userDTO.id}-${Date.now()}`,
+    token,
     user: userDTO,
   });
 });
@@ -293,8 +301,15 @@ app.post("/api/auth/register", async (req, res) => {
 
   addAuditLog(newUserDTO.id, newUserDTO.name, "student", "STUDENT_REGISTER", `Registered new student account (${newUserDTO.studentIdNumber})`);
 
+  const token = generateToken({
+    id: newUserDTO.id,
+    role: newUserDTO.role,
+    name: newUserDTO.name,
+    email: newUserDTO.email,
+  });
+
   return res.json({
-    token: `ccms-token-${newUserDTO.id}-${Date.now()}`,
+    token,
     user: newUserDTO,
   });
 });
@@ -321,7 +336,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   });
 });
 
-app.put("/api/users/profile", async (req, res) => {
+app.put("/api/users/profile", authenticate, async (req, res) => {
   const { userId, name, phone, department, session, avatarUrl } = req.body;
 
   if (isMongo) {
@@ -354,7 +369,7 @@ app.put("/api/users/profile", async (req, res) => {
 // ----------------------------------------------------
 // COMPLAINT ENDPOINTS
 // ----------------------------------------------------
-app.get("/api/complaints", async (req, res) => {
+app.get("/api/complaints", authenticate, async (req, res) => {
   const { studentId, departmentId, status, priority, search } = req.query;
 
   let list: Complaint[] = [];
@@ -395,7 +410,7 @@ app.get("/api/complaints", async (req, res) => {
   return res.json({ complaints: filtered });
 });
 
-app.get("/api/complaints/:id", async (req, res) => {
+app.get("/api/complaints/:id", authenticate, async (req, res) => {
   let complaint: Complaint | null = null;
   if (isMongo) {
     complaint = await ComplaintModel.findOne({ id: req.params.id } as any).lean();
@@ -409,7 +424,7 @@ app.get("/api/complaints/:id", async (req, res) => {
   return res.json({ complaint });
 });
 
-app.post("/api/complaints", async (req, res) => {
+app.post("/api/complaints", authenticate, async (req, res) => {
   const {
     title,
     description,
@@ -527,7 +542,7 @@ app.post("/api/complaints", async (req, res) => {
   return res.json({ complaint: newComplaint });
 });
 
-app.put("/api/complaints/:id", async (req, res) => {
+app.put("/api/complaints/:id", authenticate, async (req, res) => {
   const { id } = req.params;
   const {
     status,
@@ -658,7 +673,7 @@ app.put("/api/complaints/:id", async (req, res) => {
 });
 
 // Feedback / Rating Endpoint
-app.post("/api/complaints/:id/rating", async (req, res) => {
+app.post("/api/complaints/:id/rating", authenticate, async (req, res) => {
   const { id } = req.params;
   const { score, comment, studentId, studentName } = req.body;
 
@@ -701,7 +716,7 @@ app.post("/api/complaints/:id/rating", async (req, res) => {
 });
 
 // AI Auto-Categorize & Priority Prediction with Gemini
-app.post("/api/ai/analyze-complaint", async (req, res) => {
+app.post("/api/ai/analyze-complaint", authenticate, async (req, res) => {
   const { title, description, category, building, isEmergency } = req.body;
 
   const aiClient = getGeminiClient();
@@ -781,7 +796,7 @@ Return JSON format with exact keys:
 // ----------------------------------------------------
 // MANAGEMENT ENDPOINTS (DEPARTMENTS, CATEGORIES, USERS, STATS)
 // ----------------------------------------------------
-app.get("/api/departments", async (req, res) => {
+app.get("/api/departments", authenticate, async (req, res) => {
   if (isMongo) {
     const list = await DepartmentModel.find().lean();
     return res.json({ departments: list });
@@ -789,7 +804,7 @@ app.get("/api/departments", async (req, res) => {
   return res.json({ departments });
 });
 
-app.post("/api/departments", async (req, res) => {
+app.post("/api/departments", authenticate, authorize("admin"), async (req, res) => {
   const { name, code, headName, headEmail, description } = req.body;
   const newDept: Department = {
     id: `dept-${Date.now()}`,
@@ -809,7 +824,7 @@ app.post("/api/departments", async (req, res) => {
   return res.json({ department: newDept });
 });
 
-app.get("/api/categories", async (req, res) => {
+app.get("/api/categories", authenticate, async (req, res) => {
   if (isMongo) {
     const list = await CategoryModel.find().lean();
     return res.json({ categories: list });
@@ -817,7 +832,7 @@ app.get("/api/categories", async (req, res) => {
   return res.json({ categories });
 });
 
-app.post("/api/categories", async (req, res) => {
+app.post("/api/categories", authenticate, authorize("admin"), async (req, res) => {
   const { name, departmentId, departmentName, description } = req.body;
   const newCat: Category = {
     id: `cat-${Date.now()}`,
@@ -834,7 +849,7 @@ app.post("/api/categories", async (req, res) => {
   return res.json({ category: newCat });
 });
 
-app.get("/api/users", async (req, res) => {
+app.get("/api/users", authenticate, authorize("admin"), async (req, res) => {
   const { role } = req.query;
   let userList: User[] = [];
 
@@ -853,7 +868,7 @@ app.get("/api/users", async (req, res) => {
 // Create a new user account (used by Admin > Manage Users > "Add Staff
 // Member" form). Supports creating staff, admin, or student accounts.
 // A default password is generated and returned so the admin can share it.
-app.post("/api/users", async (req, res) => {
+app.post("/api/users", authenticate, authorize("admin"), async (req, res) => {
   const { name, email, role, department, phone } = req.body;
 
   if (!name || !email || !role) {
@@ -914,7 +929,7 @@ app.post("/api/users", async (req, res) => {
   return res.json({ success: true, defaultPassword });
 });
 
-app.put("/api/users/:id/status", async (req, res) => {
+app.put("/api/users/:id/status", authenticate, authorize("admin"), async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -927,7 +942,7 @@ app.put("/api/users/:id/status", async (req, res) => {
   return res.json({ success: true, status });
 });
 
-app.get("/api/notifications", async (req, res) => {
+app.get("/api/notifications", authenticate, async (req, res) => {
   const { userId } = req.query;
   let notifList: AppNotification[] = [];
 
@@ -941,7 +956,7 @@ app.get("/api/notifications", async (req, res) => {
 
 // Mark a single notification as read (used when the user clicks on it
 // in the bell dropdown, so the unread badge count decreases right away).
-app.put("/api/notifications/:id/read", async (req, res) => {
+app.put("/api/notifications/:id/read", authenticate, async (req, res) => {
   const { id } = req.params;
   if (isMongo) {
     await NotificationModel.updateOne({ id } as any, { $set: { read: true } });
@@ -952,7 +967,7 @@ app.put("/api/notifications/:id/read", async (req, res) => {
   return res.json({ success: true });
 });
 
-app.put("/api/notifications/read-all", async (req, res) => {
+app.put("/api/notifications/read-all", authenticate, async (req, res) => {
   const { userId } = req.body;
   if (isMongo) {
     await NotificationModel.updateMany({ userId } as any, { $set: { read: true } });
@@ -964,7 +979,7 @@ app.put("/api/notifications/read-all", async (req, res) => {
   return res.json({ success: true });
 });
 
-app.delete("/api/notifications/clear-all", async (req, res) => {
+app.delete("/api/notifications/clear-all", authenticate, async (req, res) => {
   const { userId } = req.query;
   if (isMongo && userId) {
     await NotificationModel.deleteMany({ userId } as any);
@@ -976,7 +991,7 @@ app.delete("/api/notifications/clear-all", async (req, res) => {
   return res.json({ success: true });
 });
 
-app.get("/api/feedbacks", async (req, res) => {
+app.get("/api/feedbacks", authenticate, async (req, res) => {
   const { studentId } = req.query;
   let list = feedbacks;
   if (studentId) {
@@ -985,7 +1000,7 @@ app.get("/api/feedbacks", async (req, res) => {
   return res.json({ feedbacks: list });
 });
 
-app.post("/api/feedbacks", async (req, res) => {
+app.post("/api/feedbacks", authenticate, async (req, res) => {
   const { studentId, studentName, complaintId, complaintTitle, rating, category, comments } = req.body;
   const fbItem: FeedbackItem = {
     id: `fb-${Date.now()}`,
@@ -1002,7 +1017,7 @@ app.post("/api/feedbacks", async (req, res) => {
   return res.json({ success: true, feedback: fbItem });
 });
 
-app.get("/api/audit-logs", async (req, res) => {
+app.get("/api/audit-logs", authenticate, authorize("admin"), async (req, res) => {
   if (isMongo) {
     const logs = await AuditLogModel.find().lean();
     return res.json({ auditLogs: logs });
@@ -1010,7 +1025,7 @@ app.get("/api/audit-logs", async (req, res) => {
   return res.json({ auditLogs });
 });
 
-app.get("/api/stats", async (req, res) => {
+app.get("/api/stats", authenticate, authorize("admin"), async (req, res) => {
   let complaintList: Complaint[] = [];
   if (isMongo) {
     complaintList = await ComplaintModel.find().lean();

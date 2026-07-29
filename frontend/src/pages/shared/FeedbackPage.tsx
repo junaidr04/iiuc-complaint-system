@@ -13,6 +13,7 @@ import {
   ThumbsUp,
   AlertCircle,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface FeedbackPageProps {
   onNavigate: (page: string) => void;
@@ -44,7 +45,7 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
   useEffect(() => {
     if (user) {
       // Fetch user complaints to find resolved ones
-      fetch(`/api/complaints?studentId=${user.id}`)
+      apiFetch(`/api/complaints?studentId=${user.id}`)
         .then((res) => res.json())
         .then((data) => {
           const list: Complaint[] = data.complaints || [];
@@ -57,7 +58,7 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
         .catch(console.error);
 
       // Fetch past feedbacks
-      fetch(`/api/feedbacks?studentId=${user.id}`)
+      apiFetch(`/api/feedbacks?studentId=${user.id}`)
         .then((res) => res.json())
         .then((data) => setPastFeedbacks(data.feedbacks || []))
         .catch(console.error);
@@ -78,7 +79,7 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
     try {
       if (selectedComplaintId) {
         // Submit rating directly to specific complaint ticket
-        const res = await fetch(`/api/complaints/${selectedComplaintId}/rating`, {
+        const res = await apiFetch(`/api/complaints/${selectedComplaintId}/rating`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -93,7 +94,7 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
       }
 
       // Also post to general feedbacks endpoint for MongoDB persistence
-      const fbRes = await fetch('/api/feedbacks', {
+      const fbRes = await apiFetch('/api/feedbacks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -226,11 +227,10 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
                     className="p-2 rounded-xl transition-all hover:scale-110 focus:outline-none"
                   >
                     <Star
-                      className={`w-7 h-7 ${
-                        (hoverRating || rating) >= star
+                      className={`w-7 h-7 ${(hoverRating || rating) >= star
                           ? 'text-amber-500 fill-amber-500 drop-shadow-xs'
                           : 'text-slate-300 dark:text-slate-700'
-                      }`}
+                        }`}
                     />
                   </button>
                 ))}
@@ -287,9 +287,8 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star
                             key={s}
-                            className={`w-3.5 h-3.5 ${
-                              s <= fb.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300 dark:text-slate-600'
-                            }`}
+                            className={`w-3.5 h-3.5 ${s <= fb.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300 dark:text-slate-600'
+                              }`}
                           />
                         ))}
                       </div>

@@ -16,6 +16,7 @@ import {
   Shield,
   UserCheck,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface NavbarProps {
   onSearch: (q: string) => void;
@@ -35,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
 
   useEffect(() => {
     if (user) {
-      fetch(`/api/notifications?userId=${user.id}`)
+      apiFetch(`/api/notifications?userId=${user.id}`)
         .then((res) => res.json())
         .then((data) => setNotifications(data.notifications || []))
         .catch(console.error);
@@ -46,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
 
   const handleMarkAllRead = async () => {
     if (!user) return;
-    await fetch('/api/notifications/read-all', {
+    await apiFetch('/api/notifications/read-all', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: user.id }),
@@ -64,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
         prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
       );
       try {
-        await fetch(`/api/notifications/${n.id}/read`, {
+        await apiFetch(`/api/notifications/${n.id}/read`, {
           method: 'PUT',
         });
       } catch (err) {
@@ -179,8 +180,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
                           key={n.id}
                           onClick={() => handleNotificationClick(n)}
                           className={`p-2.5 rounded-xl border text-xs transition-all cursor-pointer hover:border-blue-300 dark:hover:border-blue-700 ${n.read
-                              ? 'bg-slate-50 dark:bg-slate-950 border-slate-100 dark:border-slate-800/60 opacity-80'
-                              : 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 font-medium'
+                            ? 'bg-slate-50 dark:bg-slate-950 border-slate-100 dark:border-slate-800/60 opacity-80'
+                            : 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 font-medium'
                             }`}
                         >
                           <p className="font-bold text-slate-800 dark:text-slate-100">{n.title}</p>

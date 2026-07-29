@@ -14,6 +14,7 @@ import {
   Building2,
   Sparkles,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface StudentDashboardProps {
   onNavigate: (page: string) => void;
@@ -26,7 +27,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate }
 
   const fetchComplaints = () => {
     if (!user) return;
-    fetch(`/api/complaints?studentId=${user.id}`)
+    apiFetch(`/api/complaints?studentId=${user.id}`)
       .then((res) => res.json())
       .then((data) => setComplaints(data.complaints || []))
       .catch(console.error);
@@ -43,14 +44,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate }
   const rejected = complaints.filter((c) => c.status === 'rejected').length;
 
   const handleUpdateComplaint = async (id: string, updateData: any) => {
-    await fetch(`/api/complaints/${id}`, {
+    await apiFetch(`/api/complaints/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateData),
     });
     fetchComplaints();
     if (selectedComplaint && selectedComplaint.id === id) {
-      const res = await fetch(`/api/complaints/${id}`);
+      const res = await apiFetch(`/api/complaints/${id}`);
       const data = await res.json();
       setSelectedComplaint(data.complaint);
     }

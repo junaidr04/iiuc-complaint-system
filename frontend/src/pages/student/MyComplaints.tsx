@@ -15,6 +15,7 @@ import {
   QrCode,
   Building2,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface MyComplaintsProps {
   onNavigate: (page: string) => void;
@@ -30,7 +31,7 @@ export const MyComplaints: React.FC<MyComplaintsProps> = ({ onNavigate }) => {
 
   const fetchComplaints = () => {
     if (!user) return;
-    fetch(`/api/complaints?studentId=${user.id}`)
+    apiFetch(`/api/complaints?studentId=${user.id}`)
       .then((res) => res.json())
       .then((data) => setComplaints(data.complaints || []))
       .catch(console.error);
@@ -42,7 +43,7 @@ export const MyComplaints: React.FC<MyComplaintsProps> = ({ onNavigate }) => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this pending complaint?')) return;
-    const res = await fetch(`/api/complaints/${id}`, { method: 'DELETE' });
+    const res = await apiFetch(`/api/complaints/${id}`, { method: 'DELETE' });
     if (res.ok) {
       fetchComplaints();
     } else {
@@ -52,14 +53,14 @@ export const MyComplaints: React.FC<MyComplaintsProps> = ({ onNavigate }) => {
   };
 
   const handleUpdateComplaint = async (id: string, updateData: any) => {
-    await fetch(`/api/complaints/${id}`, {
+    await apiFetch(`/api/complaints/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateData),
     });
     fetchComplaints();
     if (selectedComplaint && selectedComplaint.id === id) {
-      const res = await fetch(`/api/complaints/${id}`);
+      const res = await apiFetch(`/api/complaints/${id}`);
       const data = await res.json();
       setSelectedComplaint(data.complaint);
     }
@@ -163,8 +164,8 @@ export const MyComplaints: React.FC<MyComplaintsProps> = ({ onNavigate }) => {
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug">{c.title}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{c.description}</p>
                 <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium">
-                  <span>Building: {c.building} ({c.roomNumber})</span> • 
-                  <span>Department: {c.departmentName}</span> • 
+                  <span>Building: {c.building} ({c.roomNumber})</span> •
+                  <span>Department: {c.departmentName}</span> •
                   <span>Logged: {new Date(c.createdDate).toLocaleDateString()}</span>
                 </div>
               </div>

@@ -14,6 +14,7 @@ import {
   Clock,
   Download,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -21,12 +22,12 @@ export const AdminDashboard: React.FC = () => {
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
   const fetchAdminData = () => {
-    fetch('/api/stats')
+    apiFetch('/api/stats')
       .then((res) => res.json())
       .then((d) => setStats(d.stats))
       .catch(console.error);
 
-    fetch('/api/complaints')
+    apiFetch('/api/complaints')
       .then((res) => res.json())
       .then((d) => setComplaints(d.complaints || []))
       .catch(console.error);
@@ -37,14 +38,14 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const handleUpdateComplaint = async (id: string, updateData: any) => {
-    await fetch(`/api/complaints/${id}`, {
+    await apiFetch(`/api/complaints/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateData),
     });
     fetchAdminData();
     if (selectedComplaint && selectedComplaint.id === id) {
-      const res = await fetch(`/api/complaints/${id}`);
+      const res = await apiFetch(`/api/complaints/${id}`);
       const data = await res.json();
       setSelectedComplaint(data.complaint);
     }
@@ -89,7 +90,7 @@ export const AdminDashboard: React.FC = () => {
             <span className="font-mono font-bold">100% Accuracy</span>
           </div>
           <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
-            <svg width="220" height="220" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <svg width="220" height="220" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
           </div>
         </div>
 

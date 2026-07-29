@@ -15,6 +15,7 @@ import {
   Inbox,
   ShieldAlert,
 } from 'lucide-react';
+import { apiFetch } from '../../utils/api';
 
 interface NotificationsPageProps {
   onNavigate: (page: string) => void;
@@ -31,7 +32,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onNavigate
     if (!user) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/notifications?userId=${user.id}`);
+      const res = await apiFetch(`/api/notifications?userId=${user.id}`);
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
@@ -50,7 +51,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onNavigate
   const handleMarkAllRead = async () => {
     if (!user) return;
     try {
-      await fetch('/api/notifications/read-all', {
+      await apiFetch('/api/notifications/read-all', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
@@ -64,7 +65,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onNavigate
   const handleClearAll = async () => {
     if (!user) return;
     try {
-      await fetch(`/api/notifications/clear-all?userId=${user.id}`, {
+      await apiFetch(`/api/notifications/clear-all?userId=${user.id}`, {
         method: 'DELETE',
       });
       setNotifications([]);
@@ -122,41 +123,37 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onNavigate
         <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
           <button
             onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              filterType === 'all'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${filterType === 'all'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
+              }`}
           >
             All ({notifications.length})
           </button>
           <button
             onClick={() => setFilterType('unread')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              filterType === 'unread'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${filterType === 'unread'
                 ? 'bg-amber-600 text-white shadow-md'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
+              }`}
           >
             Unread ({unreadCount})
           </button>
           <button
             onClick={() => setFilterType('status_update')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              filterType === 'status_update'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${filterType === 'status_update'
                 ? 'bg-purple-600 text-white shadow-md'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
+              }`}
           >
             Status Updates
           </button>
           <button
             onClick={() => setFilterType('system')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              filterType === 'system'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${filterType === 'system'
                 ? 'bg-rose-600 text-white shadow-md'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
+              }`}
           >
             System Alerts
           </button>
@@ -212,20 +209,18 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onNavigate
                   onNavigate('my-complaints');
                 }
               }}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer relative group flex items-start gap-4 ${
-                notif.read
+              className={`p-4 rounded-2xl border transition-all cursor-pointer relative group flex items-start gap-4 ${notif.read
                   ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-85 hover:border-blue-300 dark:hover:border-blue-800'
                   : 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 shadow-sm'
-              }`}
+                }`}
             >
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                  notif.type === 'status_update'
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notif.type === 'status_update'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300'
                     : notif.type === 'assignment'
-                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300'
-                    : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'
-                }`}
+                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300'
+                      : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'
+                  }`}
               >
                 {notif.type === 'status_update' ? (
                   <CheckCircle2 className="w-5 h-5" />
