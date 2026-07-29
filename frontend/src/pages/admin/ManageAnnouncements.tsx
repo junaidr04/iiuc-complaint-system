@@ -115,7 +115,7 @@ export const ManageAnnouncements: React.FC = () => {
               <div className="flex justify-between items-center">
                 <span className="font-bold text-sm text-slate-900 dark:text-white">{ann.title}</span>
                 <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold px-2 py-0.5 rounded">
-                  {ann.category}
+                  {ann.categoryTag || ann.targetAudience}
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300">{ann.content}</p>

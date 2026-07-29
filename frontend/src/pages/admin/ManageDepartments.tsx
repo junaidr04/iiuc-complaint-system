@@ -51,7 +51,7 @@ export const ManageDepartments: React.FC = () => {
                 <p className="text-xs text-slate-500 dark:text-slate-400">{dept.description}</p>
                 <div className="text-[11px] text-slate-600 dark:text-slate-300 pt-1 border-t border-slate-200 dark:border-slate-700 flex justify-between">
                   <span>Head: {dept.headName}</span>
-                  <span>Target SLA: {dept.slaHours} Hours</span>
+                  <span>Staff: {dept.staffCount} · Active: {dept.activeComplaintsCount}</span>
                 </div>
               </div>
             ))}
@@ -71,7 +71,7 @@ export const ManageDepartments: React.FC = () => {
                   <span className="text-[10px] text-slate-400">{cat.description}</span>
                 </div>
                 <span className="font-mono text-[10px] bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded font-bold">
-                  SLA {cat.slaHours}h
+                  {cat.departmentName}
                 </span>
               </div>
             ))}

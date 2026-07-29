@@ -217,14 +217,14 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ onNavigate
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notif.type === 'status_update'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300'
-                    : notif.type === 'assignment'
+                    : notif.type === 'assigned'
                       ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300'
                       : 'bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300'
                   }`}
               >
                 {notif.type === 'status_update' ? (
                   <CheckCircle2 className="w-5 h-5" />
-                ) : notif.type === 'assignment' ? (
+                ) : notif.type === 'assigned' ? (
                   <Info className="w-5 h-5" />
                 ) : (
                   <ShieldAlert className="w-5 h-5" />
