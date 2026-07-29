@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
+import { apiFetch } from '../utils/api';
 
 interface AuthContextType {
   user: User | null;
@@ -118,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
     if (!user) return false;
     try {
-      const res = await fetch('/api/users/profile', {
+      const res = await apiFetch('/api/users/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, ...data }),

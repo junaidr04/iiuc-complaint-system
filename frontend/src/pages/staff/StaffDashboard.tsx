@@ -40,7 +40,7 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboar
       const res = await apiFetch('/api/departments');
       const data = await res.json();
       const match = (data.departments || []).find(
-        (d: Department) => d.name === user.department
+        (d: Department) => d.name.trim().toLowerCase() === user.department!.trim().toLowerCase()
       );
       return match?.id || null;
     } catch (err) {
