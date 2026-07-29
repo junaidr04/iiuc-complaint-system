@@ -28,7 +28,7 @@ export const AuditLogs: React.FC = () => {
           <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
             <tr>
               <th className="p-3 rounded-l-xl">Timestamp</th>
-              <th className="p-3">Complaint ID</th>
+              <th className="p-3">Details</th>
               <th className="p-3">Action performed</th>
               <th className="p-3">User / Actor</th>
               <th className="p-3 rounded-r-xl">Role</th>
@@ -38,9 +38,9 @@ export const AuditLogs: React.FC = () => {
             {auditLogs.map((log) => (
               <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                 <td className="p-3 font-mono text-[11px] text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
-                <td className="p-3 font-mono font-bold text-blue-600">{log.complaintId}</td>
+                <td className="p-3 font-mono font-bold text-blue-600">{log.details}</td>
                 <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">{log.action}</td>
-                <td className="p-3 font-medium text-slate-600 dark:text-slate-400">{log.performedBy}</td>
+                <td className="p-3 font-medium text-slate-600 dark:text-slate-400">{log.userName}</td>
                 <td className="p-3">
                   <span className="text-[10px] uppercase font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
                     {log.userRole}
