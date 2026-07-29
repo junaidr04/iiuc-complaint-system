@@ -69,6 +69,7 @@ let complaints: Complaint[] = [...INITIAL_COMPLAINTS];
 let notifications: AppNotification[] = [...INITIAL_NOTIFICATIONS];
 let feedbacks: FeedbackItem[] = [...INITIAL_FEEDBACKS];
 let auditLogs: AuditLog[] = [...INITIAL_AUDIT_LOGS];
+let announcements: Announcement[] = [...INITIAL_ANNOUNCEMENTS];
 
 // Connect MongoDB Atlas if MONGODB_URI is provided
 connectToDatabase().then(async (connected) => {
@@ -1015,6 +1016,33 @@ app.post("/api/feedbacks", authenticate, async (req, res) => {
   };
   feedbacks.unshift(fbItem);
   return res.json({ success: true, feedback: fbItem });
+});
+
+app.get("/api/announcements", authenticate, async (req, res) => {
+  return res.json({ announcements });
+});
+
+app.post("/api/announcements", authenticate, authorize("admin"), async (req, res) => {
+  const { title, content, category, authorName, targetAudience, isPinned } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ error: "Title and content are required." });
+  }
+
+  const newAnnouncement: Announcement = {
+    id: `ann-${Date.now()}`,
+    title,
+    content,
+    authorRole: "admin",
+    authorName: authorName || "Central Administration",
+    date: new Date().toISOString(),
+    targetAudience: targetAudience || "all",
+    isPinned: !!isPinned,
+    categoryTag: category,
+  };
+
+  announcements.unshift(newAnnouncement);
+  return res.json({ success: true, announcement: newAnnouncement });
 });
 
 app.get("/api/audit-logs", authenticate, authorize("admin"), async (req, res) => {
