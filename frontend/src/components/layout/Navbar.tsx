@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
               </button>
 
               {isNotifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-3">
+                <div className="fixed left-4 right-4 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-3">
                   <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Notifications</h4>
                     {unreadCount > 0 && (
@@ -228,7 +228,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 text-xs">
+                <div className="fixed right-4 top-16 w-48 sm:absolute sm:right-0 sm:top-auto sm:mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 text-xs">
                   <div className="p-2 border-b border-slate-100 dark:border-slate-800 mb-1">
                     <p className="font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
                     <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
