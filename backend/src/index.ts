@@ -152,6 +152,17 @@ async function getAllAdmins(): Promise<any[]> {
   return users.filter((u) => u.role === "admin");
 }
 
+// Helper: fetch users matching an announcement's target audience
+// ('all' -> students + staff, since admins post these themselves)
+async function getUsersForAudience(targetAudience: string): Promise<any[]> {
+  const roles =
+    targetAudience === "students" ? ["student"] : targetAudience === "staff" ? ["staff"] : ["student", "staff"];
+  if (isMongo) {
+    return await UserModel.find({ role: { $in: roles } } as any).lean();
+  }
+  return users.filter((u) => roles.includes(u.role));
+}
+
 // Helper: create a notification for a specific user (handles both storage modes)
 async function createNotification(notif: AppNotification) {
   if (isMongo) {
@@ -1042,6 +1053,23 @@ app.post("/api/announcements", authenticate, authorize("admin"), async (req, res
   };
 
   announcements.unshift(newAnnouncement);
+
+  // Broadcast a bell notification to everyone this announcement targets,
+  // so it shows up in NotificationsPage / the notification bell too, not
+  // just the dashboard bulletin banner.
+  const recipients = await getUsersForAudience(newAnnouncement.targetAudience);
+  for (const recipient of recipients) {
+    await createNotification({
+      id: `notif-${Date.now()}-ann-${recipient.id}`,
+      userId: recipient.id,
+      title: newAnnouncement.title,
+      message: newAnnouncement.content,
+      type: "announcement",
+      read: false,
+      date: newAnnouncement.date,
+    });
+  }
+
   return res.json({ success: true, announcement: newAnnouncement });
 });
 
