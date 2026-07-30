@@ -76,9 +76,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, isOpe
       )}
 
       <aside
-        className={`fixed md:sticky top-14 left-0 z-40 w-64 h-[calc(100vh-3.5rem)] bg-slate-900 text-white border-r border-slate-800 p-4 flex flex-col justify-between transition-transform duration-200 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed md:sticky top-14 left-0 z-40 w-64 h-[calc(100vh-3.5rem)] bg-slate-900 text-white border-r border-slate-800 p-4 flex flex-col justify-between transition-transform duration-200 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         <div className="space-y-6 overflow-y-auto">
           {/* Active Role Indicator Card */}
@@ -113,13 +112,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, isOpe
                     onNavigate(item.id);
                     onCloseMobile();
                   }}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl font-medium text-xs transition-all ${
-                    isActive
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl font-medium text-xs transition-all ${isActive
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 font-bold'
                       : item.highlight
-                      ? 'bg-blue-900/40 text-blue-300 border border-blue-700/50 font-semibold'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                  }`}
+                        ? 'bg-blue-900/40 text-blue-300 border border-blue-700/50 font-semibold'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon className={`w-4 h-4 ${isActive ? 'text-white' : item.highlight ? 'text-blue-400' : 'text-slate-400'}`} />
@@ -130,6 +128,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, isOpe
               );
             })}
           </nav>
+
+          {/* Quick Tip Widget — fills the space between nav and emergency box */}
+          <div className="p-3.5 bg-blue-950/40 border border-blue-900/50 rounded-2xl text-xs space-y-1.5">
+            <div className="flex items-center gap-1.5 text-blue-300 font-bold">
+              <Sparkles className="w-4 h-4 text-blue-400" /> Quick Tip
+            </div>
+            <p className="text-[11px] text-blue-200/80 leading-relaxed">
+              {role === 'student'
+                ? 'Attach clear photos when submitting a complaint — it helps staff resolve issues faster.'
+                : role === 'staff'
+                  ? 'Add solution notes and photos before marking a ticket resolved for a smoother audit trail.'
+                  : 'Check Audit Logs regularly to track resolution speed across departments.'}
+            </p>
+          </div>
         </div>
 
         {/* Bottom Quick Action: Emergency Hotline */}

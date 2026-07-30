@@ -269,13 +269,32 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
         </div>
 
         {/* Sidebar: Past Submitted Feedbacks */}
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md space-y-4">
+        <div className="space-y-4 lg:h-full">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-md space-y-4 lg:h-full flex flex-col">
             <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
               <History className="w-4 h-4 text-blue-500" /> Recent Service Ratings
             </h3>
 
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+            {pastFeedbacks.length > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-2xl text-center">
+                  <p className="text-lg font-black text-purple-700 dark:text-purple-300">
+                    {(pastFeedbacks.reduce((sum, f) => sum + f.rating, 0) / pastFeedbacks.length).toFixed(1)}
+                  </p>
+                  <p className="text-[10px] font-semibold text-purple-500 dark:text-purple-400 uppercase tracking-wide">
+                    Avg Rating
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-2xl text-center">
+                  <p className="text-lg font-black text-blue-700 dark:text-blue-300">{pastFeedbacks.length}</p>
+                  <p className="text-[10px] font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide">
+                    Total Submitted
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 flex-1">
               {pastFeedbacks.length > 0 ? (
                 pastFeedbacks.map((fb) => (
                   <div
@@ -307,9 +326,10 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onNavigate }) => {
                   </div>
                 ))
               ) : (
-                <div className="p-6 text-center text-slate-400 space-y-2 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                <div className="p-6 text-center text-slate-400 space-y-2 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl h-full flex flex-col items-center justify-center">
                   <ThumbsUp className="w-8 h-8 mx-auto text-slate-300" />
                   <p className="text-xs">No feedback submitted yet.</p>
+                  <p className="text-[11px] text-slate-400 max-w-[200px]">Your submitted ratings will show up here for quick reference.</p>
                 </div>
               )}
             </div>

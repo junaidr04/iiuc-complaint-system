@@ -167,7 +167,7 @@ function MainLayout() {
         </main>
       </div>
 
-      <Footer />
+      <Footer onNavigate={handleNavigate} />
     </div>
   );
 }

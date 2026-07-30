@@ -1,7 +1,19 @@
 import React from 'react';
 import { GraduationCap, ShieldCheck, Phone, Mail, MapPin } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onNavigate: (page: string) => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const goToSection = (sectionId: string) => {
+    onNavigate('home');
+    // Wait a tick for the Home page to mount before scrolling to the section
+    setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
     <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 text-xs py-8 px-4 mt-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -20,10 +32,10 @@ export const Footer: React.FC = () => {
         <div>
           <h4 className="font-bold text-white uppercase text-[11px] tracking-wider mb-3">Quick Navigation</h4>
           <ul className="space-y-2 text-slate-400">
-            <li><a href="#categories" className="hover:text-white transition-colors">Complaint Categories</a></li>
-            <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
-            <li><a href="#safety" className="hover:text-white transition-colors">Campus Safety & Emergency</a></li>
-            <li><a href="#faq" className="hover:text-white transition-colors">Frequently Asked Questions</a></li>
+            <li><button onClick={() => goToSection('categories')} className="hover:text-white transition-colors text-left">Complaint Categories</button></li>
+            <li><button onClick={() => goToSection('how-it-works')} className="hover:text-white transition-colors text-left">How It Works</button></li>
+            <li><button onClick={() => goToSection('safety')} className="hover:text-white transition-colors text-left">Campus Safety & Emergency</button></li>
+            <li><button onClick={() => goToSection('faq')} className="hover:text-white transition-colors text-left">Frequently Asked Questions</button></li>
           </ul>
         </div>
 
