@@ -83,27 +83,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2.5 transition-colors">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-2.5 sm:px-4 py-2.5 transition-colors overflow-x-hidden">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3">
         {/* Left: Mobile Menu Toggle & Logo */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <button
             onClick={onToggleSidebar}
-            className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+            className="md:hidden p-1.5 sm:p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl shrink-0"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div
             onClick={() => onNavigate('home')}
-            className="flex items-center gap-2.5 cursor-pointer group"
+            className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer group min-w-0"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
+              <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1">
-                CCMS <span className="text-xs px-1.5 py-0.2 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">AI</span>
+            <div className="min-w-0">
+              <span className="font-black text-sm sm:text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1">
+                CCMS <span className="hidden min-[380px]:inline text-xs px-1.5 py-0.2 bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 rounded font-semibold">AI</span>
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-1 font-medium hidden sm:block">
                 Campus Grievance Redressal
@@ -127,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
         </div>
 
         {/* Right Controls: Theme, Notifications, Role Badge & User Menu */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Active Role Badge */}
           {user && (
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
@@ -139,7 +139,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
           {/* Theme Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0"
             title="Toggle theme"
           >
             {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
@@ -259,16 +259,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearch, onNavigate, currentPag
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <button
                 onClick={() => onNavigate('login')}
-                className="px-3 py-1.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-xs rounded-xl transition-colors"
+                className="px-2 sm:px-3 py-1.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-[11px] sm:text-xs rounded-xl transition-colors whitespace-nowrap"
               >
                 Sign In
               </button>
               <button
                 onClick={() => onNavigate('register')}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+                className="px-2.5 sm:px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] sm:text-xs rounded-xl shadow-xs transition-colors whitespace-nowrap"
               >
                 Register
               </button>
