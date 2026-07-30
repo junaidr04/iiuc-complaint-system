@@ -963,6 +963,10 @@ app.get("/api/notifications", authenticate, async (req, res) => {
   } else {
     notifList = notifications.filter((n) => n.userId === userId);
   }
+
+  // Newest first, regardless of storage mode / insertion order.
+  notifList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return res.json({ notifications: notifList });
 });
 
