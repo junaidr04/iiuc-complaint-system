@@ -23,14 +23,15 @@ A full-stack MERN application that digitizes complaint handling for Internationa
 ### Admin / Super Admin
 - Full analytics dashboard — ticket volume by category, department load, resolution trends
 - Manage users (students/staff/admins), departments, and categories
-- Manage public announcements
+- Publish and manage public announcements
 - Full **audit log** of every state-changing action across the system (who did what, when)
 - Moderate and oversee all complaints platform-wide
 
 ### Platform-wide
-- Token-based auth, bcrypt password hashing
-- Role-based route protection (student / staff / admin)
-- Responsive UI with light/dark theme
+- **JWT-based authentication** — signed tokens issued on login/register, verified server-side on every protected request (no client-trusted claims)
+- **Role-based route protection enforced on the backend** (student / staff / admin), not just hidden in the UI
+- bcrypt password hashing
+- Responsive UI with light/dark theme, mobile-safe navigation
 
 ---
 
@@ -46,7 +47,7 @@ A full-stack MERN application that digitizes complaint handling for Internationa
 **Backend** (`backend/`)
 - Node.js + Express
 - MongoDB Atlas + Mongoose
-- bcryptjs for password hashing
+- jsonwebtoken for auth, bcryptjs for password hashing
 - Google Gemini API (`@google/genai`) for AI-assisted complaint triage
 - tsx (dev), esbuild (production bundle)
 
@@ -59,19 +60,24 @@ A full-stack MERN application that digitizes complaint handling for Internationa
 
 ```
 IIUC-Campus-Complaint/
-├── frontend/                 React + Vite client
+├── frontend/                    React + Vite client
 │   ├── src/
-│   │   ├── components/       Reusable UI (layout, complaints, AI assistant)
-│   │   ├── context/          Auth & theme context providers
-│   │   ├── pages/            Route pages (public, student, staff, admin, shared)
-│   │   └── utils/            PDF & QR code generation
+│   │   ├── components/          Reusable UI (layout, complaints, AI assistant)
+│   │   ├── context/              Auth & theme context providers
+│   │   ├── pages/                Route pages (public, student, staff, admin, shared)
+│   │   └── utils/
+│   │       ├── api.ts           apiFetch() — attaches JWT to every request, auto-logout on 401
+│   │       ├── pdfGenerator.ts  PDF receipt generation
+│   │       └── qrCode.ts        QR code generation
 │   └── vite.config.ts
-├── backend/                  Express + Mongoose API
+├── backend/                     Express + Mongoose API
 │   ├── src/
-│   │   ├── models/           Mongoose schemas (User, Complaint, Department, Category, Notification, AuditLog)
-│   │   ├── db.ts             MongoDB Atlas connection
-│   │   ├── mockData.ts       Seed data (first-run auto-seed)
-│   │   └── index.ts          Express app & all API routes
+│   │   ├── models/              Mongoose schemas (User, Complaint, Department, Category, Notification, AuditLog)
+│   │   ├── middleware/
+│   │   │   └── auth.ts          JWT issuing (generateToken), verification (authenticate), role guard (authorize)
+│   │   ├── db.ts                MongoDB Atlas connection
+│   │   ├── mockData.ts          Seed data (first-run auto-seed)
+│   │   └── index.ts             Express app & all API routes
 │   └── .env.example
 └── README.md
 ```
@@ -89,9 +95,11 @@ IIUC-Campus-Complaint/
 ```bash
 cd backend
 npm install
-cp .env.example .env     # fill in MONGODB_URI (and GEMINI_API_KEY if you have one)
+cp .env.example .env     # fill in MONGODB_URI, JWT_SECRET (and GEMINI_API_KEY if you have one)
 npm run dev               # http://localhost:5000
 ```
+
+`JWT_SECRET` should be a long random string — it signs and verifies every login session. Never commit the real value; only `.env.example` (with placeholders) is meant to be pushed to GitHub.
 
 ### 2. Frontend
 ```bash
@@ -112,9 +120,18 @@ Or register a new student account from the UI.
 
 ---
 
+## 🔐 Authentication
+
+- Login/register issue a signed JWT (7-day expiry) containing the user's id, role, name, and email.
+- The frontend stores the token in `localStorage` and attaches it as `Authorization: Bearer <token>` on every request via `apiFetch()`.
+- The backend's `authenticate` middleware verifies the token on every protected route; `authorize(...roles)` further restricts admin-only routes (user management, department/category creation, audit logs, platform stats).
+- An expired or invalid token gets a `401`, which `apiFetch()` catches to clear the session and redirect to `/login` automatically.
+
+---
+
 ## 🌐 Deployment
 
-- **Backend** → Render (Node web service). Set `MONGODB_URI`, `GEMINI_API_KEY`, `CLIENT_URL` as environment variables.
+- **Backend** → Render (Node web service). Set `MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, `CLIENT_URL` as environment variables.
 - **Frontend** → Vercel (static build via `npm run build`, output in `frontend/dist`).
 - Point the deployed frontend's API calls at the deployed backend URL (or configure an equivalent rewrite/proxy on the host).
 
@@ -122,6 +139,7 @@ Or register a new student account from the UI.
 
 ## 🗺 Roadmap
 
+- [ ] Persist announcements, feedback, and audit logs to MongoDB (currently in-memory, resets on server restart)
 - [ ] File/image attachments on complaints (currently text-only)
 - [ ] Email notifications alongside in-app ones
 - [ ] Pagination & server-side filtering for large complaint volumes
@@ -132,5 +150,5 @@ Or register a new student account from the UI.
 ## 👤 Author
 
 **Junaid Bin Jahangir**
-CSE, International Islamic University Chittagong (IIUC) — Batch 2024–2028
+CSE, International Islamic University Chittagong (IIUC) — Batch 2022–2026
 GitHub: [@junaidr04](https://github.com/junaidr04)
