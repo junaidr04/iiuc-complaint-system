@@ -41,6 +41,18 @@ export const MyComplaints: React.FC<MyComplaintsProps> = ({ onNavigate }) => {
     fetchComplaints();
   }, [user]);
 
+  // If we arrived here via a scanned QR code (/track/:id), auto-open that complaint
+  useEffect(() => {
+    const pendingId = localStorage.getItem('ccms_pending_track_id');
+    if (pendingId && complaints.length > 0) {
+      const match = complaints.find((c) => c.id === pendingId);
+      if (match) {
+        setSelectedComplaint(match);
+      }
+      localStorage.removeItem('ccms_pending_track_id');
+    }
+  }, [complaints]);
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this pending complaint?')) return;
     const res = await apiFetch(`/api/complaints/${id}`, { method: 'DELETE' });
