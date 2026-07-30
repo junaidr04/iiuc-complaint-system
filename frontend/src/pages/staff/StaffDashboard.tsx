@@ -17,6 +17,7 @@ import {
   Download,
 } from 'lucide-react';
 import { apiFetch } from '../../utils/api';
+import { AnnouncementsBanner } from '../../components/common/AnnouncementsBanner';
 
 interface StaffDashboardProps {
   view?: 'dashboard' | 'queue';
@@ -97,6 +98,8 @@ export const StaffDashboard: React.FC<StaffDashboardProps> = ({ view = 'dashboar
 
   return (
     <div className="space-y-6 py-4">
+      {isDashboard && <AnnouncementsBanner />}
+
       {!myDepartmentId && (
         <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-xs text-amber-800 dark:text-amber-300 font-medium">
           ⚠️ Your account's department ("{user?.department}") doesn't match any department in the system.

@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { apiFetch } from '../../utils/api';
+import { AnnouncementsBanner } from '../../components/common/AnnouncementsBanner';
 
 interface StudentDashboardProps {
   onNavigate: (page: string) => void;
@@ -59,6 +60,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate }
 
   return (
     <div className="space-y-8 py-4">
+      <AnnouncementsBanner />
+
       {/* Bento Grid Layout System */}
       <div className="grid grid-cols-12 gap-4">
         {/* Hero Welcome Bento Card */}
