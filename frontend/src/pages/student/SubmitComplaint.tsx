@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { AISmartAssistant } from '../../components/ai/AISmartAssistant';
 import { Department, Category, AIAnalysisResult } from '../../types';
@@ -35,7 +35,6 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
   const [location, setLocation] = useState('');
   const [contactNumber, setContactNumber] = useState(user?.phone || '');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [imageUrlInput, setImageUrlInput] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
 
@@ -95,11 +94,32 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
     }
   };
 
-  const handleAddImageUrl = () => {
-    if (imageUrlInput.trim()) {
-      setImageUrls((prev) => [...prev, imageUrlInput.trim()]);
-      setImageUrlInput('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (imageUrls.length + files.length > 3) {
+      alert('You can attach a maximum of 3 images.');
+      e.target.value = '';
+      return;
     }
+
+    Array.from(files).forEach((file: File) => {
+      if (!file.type.startsWith('image/')) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`"${file.name}" is larger than 5MB. Please choose a smaller image.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageUrls((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = ''; // allow re-selecting the same file later
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -345,27 +365,29 @@ export const SubmitComplaint: React.FC<SubmitComplaintProps> = ({ onNavigate, on
             </div>
           </div>
 
-          {/* Image Upload / URL Input */}
+          {/* Image Upload from Device */}
           <div className="space-y-2 pt-2">
             <label className="block font-bold text-slate-800 dark:text-slate-200">
-              Attach Proof / Photo (Optional URL)
+              Attach Proof / Photo (Optional)
             </label>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={imageUrlInput}
-                onChange={(e) => setImageUrlInput(e.target.value)}
-                placeholder="Paste Image URL (https://images.unsplash.com/...)"
-                className="flex-1 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              />
-              <button
-                type="button"
-                onClick={handleAddImageUrl}
-                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-200"
-              >
-                Add Image
-              </button>
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={imageUrls.length >= 3}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <ImageIcon className="w-4 h-4" />
+              {imageUrls.length > 0 ? 'Add Another Photo' : 'Choose Photo from Gallery'}
+            </button>
+            <p className="text-[11px] text-slate-400">Up to 3 photos, max 5MB each.</p>
 
             {imageUrls.length > 0 && (
               <div className="flex gap-2 pt-2 overflow-x-auto">
