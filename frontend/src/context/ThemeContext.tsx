@@ -11,7 +11,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('ccms_theme');
     if (saved !== null) return saved === 'dark';
-    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return true; // Default to dark mode for first-time visitors
   });
 
   useEffect(() => {
