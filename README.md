@@ -173,7 +173,7 @@ Or register a new student account from the UI.
 ## 👤 Author
 
 **Junaid Bin Jahangir**
-CSE, International Islamic University Chittagong (IIUC) — Batch 2022–2026
+CSE, International Islamic University Chittagong (IIUC) — Batch 2024–2027
 [GitHub @junaidr04](https://github.com/junaidr04)
 
 ---
